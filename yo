@@ -27,11 +27,13 @@ yo_init() {
 yo_script() {
   yo_get_project_info
   sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+  unset currentProjectRoot
 }
 
 yo_package() {
   yo_get_project_info
   sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+  unset currentProjectRoot
 }
 
 # Run flutter pub get on specified package. If no package is specified, flutter pub get will be run on all packages
@@ -106,7 +108,6 @@ yo_get_project_info() {
 
       currentProjectFolderName="$_dir"
       currentProjectRoot=$(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
-      echo "current project root : $currentProjectRoot"
       return
     fi
   done
