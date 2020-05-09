@@ -1,0 +1,127 @@
+#!/usr/bin/bash
+#!/bin/bash
+
+yo_init() {
+  # Create .yo directory in home if does not exist
+  mkdir -p "$HOME/.yo"
+
+  yoInitPath=$(pwd)
+  projectConfigDirName=${yoInitPath////_}
+
+  # Creates a project config directory if does not exist
+  if [ -d "$HOME/.yo/$projectConfigDirName" ]; then
+    printError "Project already initialized"
+  else
+    #    echo "Project already initialized"
+    mkdir "$HOME/.yo/$projectConfigDirName"
+    echo "project_root=$(pwd)/" >"$HOME/.yo/$projectConfigDirName/config"
+    echo "script_path=" >>"$HOME/.yo/$projectConfigDirName/config"
+    echo "package_path=" >>"$HOME/.yo/$projectConfigDirName/config"
+
+    printSuccess "...Project initialized..."
+  fi
+}
+
+yo_script() {
+  yo_get_project_info
+  sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+}
+
+yo_package() {
+  yo_get_project_info
+  sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+}
+
+# Run flutter pub get on specified package. If no package is specified, flutter pub get will be run on all packages
+yo_get() {
+  currentFolder=$(pwd)
+
+  shopt -s nullglob
+
+  yo_get_project_info
+  currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+
+  cd "$currentProjectPackage" || return
+
+  if [ -n "$1" ]; then
+    cd "$1" || return
+    file=pubspec.yaml
+    if [ -f "$file" ]; then
+      flutter pub get
+    fi
+    cd ..
+  else
+    directories=(*)
+    for d in "${directories[@]}"; do
+      cd "$d" || return
+      file=pubspec.yaml
+      if [ -f "$file" ]; then
+        flutter pub get
+      fi
+      cd ..
+    done
+  fi
+  cd "$currentFolder" || return
+}
+
+yo() {
+  cmd=$1
+  path=$2
+
+  case $cmd in
+  init)
+    shift
+    yo_init
+    ;;
+  script)
+    shift
+    yo_script "$path"
+    ;;
+  package)
+    shift
+    yo_package "$path"
+    ;;
+  get)
+    shift
+    yo_get "$path"
+    ;;
+  esac
+}
+
+# Save the current project root in currentProjectRoot variable and current project folder name in currentProjectFolderName variable
+yo_get_project_info() {
+  currentPath=$(pwd)
+  currentPathName=${currentPath////_}
+
+  shopt -s nullglob
+
+  cd "$HOME/.yo/" || return
+
+  directories=(*)
+  for dir in "${directories[@]}"; do
+    if [[ $currentPathName == *"$dir"* ]]; then
+      cd "$currentPath" || return
+
+      currentProjectFolderName="$dir"
+      currentProjectRoot=$(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+      return
+    fi
+  done
+}
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+
+printError() {
+  echo -e "${RED}$1"
+}
+
+printSuccess() {
+  echo -e "${GREEN}$1"
+}
+
+printInfo() {
+  echo -e "${YELLOW}$1"
+}
