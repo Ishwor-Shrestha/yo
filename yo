@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 #!/bin/bash
 
+# To initialize a project
 yo_init() {
   # Create .yo directory in home if does not exist
   mkdir -p "$HOME/.yo"
@@ -24,6 +25,8 @@ yo_init() {
   fi
 }
 
+# To set the path to bash scripts
+# Path should be relative to project root
 yo_script() {
   yo_get_project_info
 
@@ -37,6 +40,8 @@ yo_script() {
   unset currentProjectRoot
 }
 
+# To set the path to flutter package(s)
+# Path should be relative to project root
 yo_package() {
   yo_get_project_info
 
