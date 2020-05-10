@@ -178,7 +178,7 @@ yo_watch() {
     fi
   else
     printError "Please provide the package name"
-    yo_help_package
+    yo_help_watch
   fi
 
   cd "$_currentFolder" || return
@@ -214,6 +214,12 @@ yo_help_script() {
 yo_help_package() {
   print
   print "Usage: yo package <path>"
+  print "'yo help' to see all available subcommands"
+}
+
+yo_help_watch() {
+  print
+  print "Usage: yo watch <package_name>"
   print "'yo help' to see all available subcommands"
 }
 # --------------------------------------------------------- #
