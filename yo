@@ -32,6 +32,7 @@ yo_script() {
 
   sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
   unset currentProjectRoot
+  unset currentProjectFolderName
 }
 
 # To set the path to flutter package(s)
@@ -41,50 +42,80 @@ yo_package() {
 
   sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
   unset currentProjectRoot
+  unset currentProjectFolderName
 }
 
-# Run flutter pub get on specified package. If no package is specified, flutter pub get will be run on all packages
-yo_get() (
-  yo_get_get() {
-    cd "$1" || return
-    _file=pubspec.yaml
-    if [ -f "$_file" ]; then
-      flutter pub get
-    fi
-    cd ..
-  }
-
+# Run `flutter pub get` on specified package. If no package is specified, `flutter pub get` will be run on all packages
+yo_get() {
   yo_verify_project_initialization
 
-  currentFolder=$(pwd)
+  _currentFolder=$(pwd)
 
   shopt -s nullglob
 
-  currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+  _currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+  unset currentProjectFolderName
+  unset currentProjectRoot
 
   # Print error if package path has not been set
-  if [ -z "$currentProjectPackage" ]; then
+  if [ -z "$_currentProjectPackage" ]; then
     printError "Please add package path first"
     return
   fi
 
-  cd "$currentProjectPackage" || return
+  cd "$_currentProjectPackage" || return
 
   if [ -n "$1" ]; then
     if [ -d "$1" ]; then
-      yo_get_get "$1"
+      yo_flutter_command "$1" "flutter pub get"
     else
       printError "No such directory"
     fi
   else
-    directories=(*)
-    for d in "${directories[@]}"; do
-      yo_get_get "$d"
+    _directories=(*)
+    for _d in "${_directories[@]}"; do
+      yo_flutter_command "$_d" "flutter pub get"
     done
   fi
 
-  cd "$currentFolder" || return
-)
+  cd "$_currentFolder" || return
+}
+
+# Run `flutter test` on specified package. If no package is specified, `flutter test` will be run on all packages
+yo_test() {
+  yo_verify_project_initialization
+
+  _currentFolder=$(pwd)
+
+  shopt -s nullglob
+
+  _currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+  unset currentProjectFolderName
+  unset currentProjectRoot
+
+  # Print error if package path has not been set
+  if [ -z "$_currentProjectPackage" ]; then
+    printError "Please add package path first"
+    return
+  fi
+
+  cd "$_currentProjectPackage" || return
+
+  if [ -n "$1" ]; then
+    if [ -d "$1" ]; then
+      yo_flutter_command "$1" "flutter test"
+    else
+      printError "No such directory"
+    fi
+  else
+    _directories=(*)
+    for _d in "${_directories[@]}"; do
+      yo_flutter_command "$_d" "flutter test"
+    done
+  fi
+
+  cd "$_currentFolder" || return
+}
 
 yo() {
   cmd=$1
@@ -92,20 +123,19 @@ yo() {
 
   case $cmd in
   init)
-    shift
     yo_init
     ;;
   script)
-    shift
     yo_script "$path"
     ;;
   package)
-    shift
     yo_package "$path"
     ;;
   get)
-    shift
     yo_get "$path"
+    ;;
+  test)
+    yo_test "$path"
     ;;
   esac
 }
@@ -141,6 +171,15 @@ yo_verify_project_initialization() {
     printError "Project has not yet been initialized"
     return
   fi
+}
+
+yo_flutter_command() {
+  cd "$1" || return
+  _pubspec_file=pubspec.yaml
+  if [ -f "$_pubspec_file" ]; then
+    eval "$2"
+  fi
+  cd ..
 }
 
 # Color codes
