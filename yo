@@ -28,13 +28,7 @@ yo_init() {
 # To set the path to bash scripts
 # Path should be relative to project root
 yo_script() {
-  yo_get_project_info
-
-  if [ -z "$currentProjectRoot" ]; then
-    unset currentProjectRoot
-    printError "Project has not yet been initialized"
-    return
-  fi
+  yo_verify_project_initialization
 
   sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
   unset currentProjectRoot
@@ -43,49 +37,54 @@ yo_script() {
 # To set the path to flutter package(s)
 # Path should be relative to project root
 yo_package() {
-  yo_get_project_info
-
-  if [ -z "$currentProjectRoot" ]; then
-    unset currentProjectRoot
-    printError "Project has not yet been initialized"
-    return
-  fi
+  yo_verify_project_initialization
 
   sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
   unset currentProjectRoot
 }
 
 # Run flutter pub get on specified package. If no package is specified, flutter pub get will be run on all packages
-yo_get() {
+yo_get() (
+  yo_get_get() {
+    cd "$1" || return
+    _file=pubspec.yaml
+    if [ -f "$_file" ]; then
+      flutter pub get
+    fi
+    cd ..
+  }
+
+  yo_verify_project_initialization
+
   currentFolder=$(pwd)
 
   shopt -s nullglob
 
-  yo_get_project_info
   currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+
+  # Print error if package path has not been set
+  if [ -z "$currentProjectPackage" ]; then
+    printError "Please add package path first"
+    return
+  fi
 
   cd "$currentProjectPackage" || return
 
   if [ -n "$1" ]; then
-    cd "$1" || return
-    file=pubspec.yaml
-    if [ -f "$file" ]; then
-      flutter pub get
+    if [ -d "$1" ]; then
+      yo_get_get "$1"
+    else
+      printError "No such directory"
     fi
-    cd ..
   else
     directories=(*)
     for d in "${directories[@]}"; do
-      cd "$d" || return
-      file=pubspec.yaml
-      if [ -f "$file" ]; then
-        flutter pub get
-      fi
-      cd ..
+      yo_get_get "$d"
     done
   fi
+
   cd "$currentFolder" || return
-}
+)
 
 yo() {
   cmd=$1
@@ -131,6 +130,17 @@ yo_get_project_info() {
     fi
   done
   cd "$_currentPath" || return
+}
+
+# Verify if project has been initialized
+yo_verify_project_initialization() {
+  yo_get_project_info
+
+  if [ -z "$currentProjectRoot" ]; then
+    unset currentProjectRoot
+    printError "Project has not yet been initialized"
+    return
+  fi
 }
 
 # Color codes
