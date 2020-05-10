@@ -150,31 +150,76 @@ yo_watch() {
   cd "$_currentFolder" || return
 }
 
+# ------------------------- Helps ------------------------- #
+yo_help() {
+  echo "Available YO subcommands"
+  echo
+  echo "init                     Initialize the project"
+  echo "script <path>            Add path (relative to the root of the project) to the scripts directory"
+  echo "package <path>           Add path (relative to the root of the project) to the packages directory"
+  echo "get                      Run 'flutter pub get' in all the packages"
+  echo "test                     Run 'flutter test' in all the packages"
+  echo "get <package_name>       Run 'flutter pub get' in the provided package"
+  echo "test <package_name>      Run 'flutter test' in the provided package"
+  echo "watch <package_name>     Run the 'build_runner' in the provided package"
+  echo "help                     Get info about YO's subcommands"
+}
+
+yo_help_init() {
+  echo "Usage: yo init"
+  echo "'yo help' to see all available subcommands"
+}
+
+yo_help_script() {
+  echo "Usage: yo script <path>"
+  echo "'yo help' to see all available subcommands"
+}
+
+yo_help_package() {
+  echo "Usage: yo package <path>"
+  echo "'yo help' to see all available subcommands"
+}
+# --------------------------------------------------------- #
+
 yo() {
   cmd=$1
   path=$2
 
-  case $cmd in
-  init)
-    yo_init
-    ;;
-  script)
-    yo_script "$path"
-    ;;
-  package)
-    yo_package "$path"
-    ;;
-  get)
-    yo_get "$path"
-    ;;
-  test)
-    yo_test "$path"
-    ;;
-  watch)
-    yo_watch "$path"
-    ;;
-  esac
+  if [ -z "$1" ]; then
+    yo_help
+  else
+    case $cmd in
+    init)
+      yo_init
+      ;;
+    script)
+      yo_script "$path"
+      ;;
+    package)
+      yo_package "$path"
+      ;;
+    get)
+      yo_get "$path"
+      ;;
+    test)
+      yo_test "$path"
+      ;;
+    watch)
+      yo_watch "$path"
+      ;;
+    help)
+      yo_help
+      ;;
+    *)
+      printError "Unknown command"
+      yo_help
+      ;;
+    esac
+
+  fi
 }
+
+# ***** Helper functions ****** #
 
 # Save the current project root in currentProjectRoot variable and current project folder name in currentProjectFolderName variable
 yo_get_project_info() {
@@ -222,6 +267,7 @@ yo_flutter_command() {
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+NO_COLOR='\033[0m'
 
 printError() {
   echo -e "${RED}*** $1 ***"
@@ -233,4 +279,8 @@ printSuccess() {
 
 printInfo() {
   echo -e "${YELLOW}*** $1 ***"
+}
+
+print() {
+  echo -e "${NO_COLOR}*** $1 ***"
 }
