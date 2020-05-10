@@ -29,8 +29,17 @@ yo_init() {
 # Path should be relative to project root
 yo_script() {
   yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
 
-  sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+  if [ -n "$1" ]; then
+    sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+  else
+    printError "Please provide the path"
+    yo_help_script
+  fi
   unset currentProjectRoot
   unset currentProjectFolderName
 }
@@ -39,8 +48,17 @@ yo_script() {
 # Path should be relative to project root
 yo_package() {
   yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
 
-  sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+  if [ -n "$1" ]; then
+    sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+  else
+    printError "Please provide the path"
+    yo_help_package
+  fi
   unset currentProjectRoot
   unset currentProjectFolderName
 }
@@ -48,6 +66,10 @@ yo_package() {
 # Run `flutter pub get` on specified package. If no package is specified, `flutter pub get` will be run on all packages
 yo_get() {
   yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
 
   _currentFolder=$(pwd)
 
@@ -85,6 +107,10 @@ yo_get() {
 # Run `flutter test` on specified package. If no package is specified, `flutter test` will be run on all packages
 yo_test() {
   yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
 
   _currentFolder=$(pwd)
 
@@ -123,6 +149,10 @@ yo_test() {
 # Print error if no package is passed
 yo_watch() {
   yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
 
   _currentFolder=$(pwd)
 
@@ -147,7 +177,7 @@ yo_watch() {
       printError "No such directory"
     fi
   else
-    printError "Please mention the package"
+    printError "Please provide the package name"
     yo_help_package
   fi
 
@@ -258,7 +288,9 @@ yo_verify_project_initialization() {
     unset currentProjectRoot
     printError "Project has not yet been initialized"
     yo_help_init
-    return
+    projectInitialized=0
+  else
+    projectInitialized=1
   fi
 }
 
