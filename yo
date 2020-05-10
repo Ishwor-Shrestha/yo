@@ -117,6 +117,39 @@ yo_test() {
   cd "$_currentFolder" || return
 }
 
+# Run `flutter build_runner` on specified package
+# Print error if no package is passed
+yo_watch() {
+  yo_verify_project_initialization
+
+  _currentFolder=$(pwd)
+
+  shopt -s nullglob
+
+  _currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+  unset currentProjectFolderName
+  unset currentProjectRoot
+
+  # Print error if package path has not been set
+  if [ -z "$_currentProjectPackage" ]; then
+    printError "Please add package path first"
+    return
+  fi
+
+  cd "$_currentProjectPackage" || return
+  if [ -n "$1" ]; then
+    if [ -d "$1" ]; then
+      yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs"
+    else
+      printError "No such directory"
+    fi
+  else
+    printError "Please mention the package"
+  fi
+
+  cd "$_currentFolder" || return
+}
+
 yo() {
   cmd=$1
   path=$2
@@ -136,6 +169,9 @@ yo() {
     ;;
   test)
     yo_test "$path"
+    ;;
+  watch)
+    yo_watch "$path"
     ;;
   esac
 }
