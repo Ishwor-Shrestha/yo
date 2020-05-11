@@ -35,13 +35,13 @@ yo_script() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+    sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_script
   fi
   unset currentProjectRoot
-  unset currentProjectFolderName
+  unset currentProjectDirectoryName
 }
 
 # To set the path to flutter package(s)
@@ -54,13 +54,13 @@ yo_package() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectFolderName"/config
+    sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_package
   fi
   unset currentProjectRoot
-  unset currentProjectFolderName
+  unset currentProjectDirectoryName
 }
 
 # Run `flutter pub get` on specified package. If no package is specified, `flutter pub get` will be run on all packages
@@ -71,22 +71,22 @@ yo_get() {
     return
   fi
 
-  _currentFolder=$(pwd)
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  _currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
-  unset currentProjectFolderName
+  _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  unset currentProjectDirectoryName
   unset currentProjectRoot
 
   # Print error if package path has not been set
-  if [ -z "$_currentProjectPackage" ]; then
+  if [ -z "$_currentProjectPackagePath" ]; then
     printError "Please add package path first"
     yo_help_package
     return
   fi
 
-  cd "$_currentProjectPackage" || return
+  cd "$_currentProjectPackagePath" || return
 
   if [ -n "$1" ]; then
     if [ -d "$1" ]; then
@@ -101,7 +101,7 @@ yo_get() {
     done
   fi
 
-  cd "$_currentFolder" || return
+  cd "$_currentDirectory" || return
 }
 
 # Run `flutter test` on specified package. If no package is specified, `flutter test` will be run on all packages
@@ -112,22 +112,22 @@ yo_test() {
     return
   fi
 
-  _currentFolder=$(pwd)
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  _currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
-  unset currentProjectFolderName
+  _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  unset currentProjectDirectoryName
   unset currentProjectRoot
 
   # Print error if package path has not been set
-  if [ -z "$_currentProjectPackage" ]; then
+  if [ -z "$_currentProjectPackagePath" ]; then
     printError "Please add package path first"
     yo_help_package
     return
   fi
 
-  cd "$_currentProjectPackage" || return
+  cd "$_currentProjectPackagePath" || return
 
   if [ -n "$1" ]; then
     if [ -d "$1" ]; then
@@ -142,11 +142,11 @@ yo_test() {
     done
   fi
 
-  cd "$_currentFolder" || return
+  cd "$_currentDirectory" || return
 }
 
 # Run `flutter build_runner` on specified package
-# Print error if no package is passed
+# Print error if no package name is passed
 yo_watch() {
   yo_verify_project_initialization
   if [ "$projectInitialized" -eq 0 ]; then
@@ -154,22 +154,22 @@ yo_watch() {
     return
   fi
 
-  _currentFolder=$(pwd)
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  _currentProjectPackage=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
-  unset currentProjectFolderName
+  _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  unset currentProjectDirectoryName
   unset currentProjectRoot
 
   # Print error if package path has not been set
-  if [ -z "$_currentProjectPackage" ]; then
+  if [ -z "$_currentProjectPackagePath" ]; then
     printError "Please add package path"
     yo_help_package
     return
   fi
 
-  cd "$_currentProjectPackage" || return
+  cd "$_currentProjectPackagePath" || return
   if [ -n "$1" ]; then
     if [ -d "$1" ]; then
       yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs"
@@ -181,22 +181,63 @@ yo_watch() {
     yo_help_watch
   fi
 
-  cd "$_currentFolder" || return
+  cd "$_currentDirectory" || return
+}
+
+# Run the provided script from the script directory
+# Print error if no script name is passed
+yo_run() {
+  yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
+
+  _currentDirectory=$(pwd)
+
+  shopt -s nullglob
+
+  _currentProjectScriptPath=$(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  unset currentProjectDirectoryName
+  unset currentProjectRoot
+
+  # Print error if package path has not been set
+  if [ -z "$_currentProjectScriptPath" ]; then
+    printError "Please add script path"
+    yo_help_script
+    return
+  fi
+
+  cd "$_currentProjectScriptPath" || return
+  if [ -n "$1" ]; then
+    if [ -d "$1" ]; then
+      echo
+    else
+      printError "No such directory"
+    fi
+  else
+    printError "Please provide the script name"
+    yo_help_watch
+  fi
+
+  cd "$_currentDirectory" || return
 }
 
 # ------------------------- Helps ------------------------- #
 yo_help() {
   print "Available YO subcommands"
   print
-  print "init                     Initialize the project"
-  print "script <path>            Add path (relative to the root of the project) to the scripts directory"
-  print "package <path>           Add path (relative to the root of the project) to the packages directory"
-  print "get                      Run 'flutter pub get' in all the packages"
-  print "test                     Run 'flutter test' in all the packages"
-  print "get <package_name>       Run 'flutter pub get' in the provided package"
-  print "test <package_name>      Run 'flutter test' in the provided package"
-  print "watch <package_name>     Run the 'build_runner' in the provided package"
-  print "help                     Get info about YO's subcommands"
+  print "init                                 Initialize the project"
+  print "script <path>                        Add path (relative to the root of the project) to the scripts directory"
+  print "package <path>                       Add path (relative to the root of the project) to the packages directory"
+  print "get                                  Run 'flutter pub get' in all the packages"
+  print "test                                 Run 'flutter test' in all the packages"
+  print "get <package_name>                   Run 'flutter pub get' in the provided package"
+  print "test <package_name>                  Run 'flutter test' in the provided package"
+  print "watch <package_name>                 Run the 'build_runner' in the provided package"
+  print "run <script_name>                    Run the provided script"
+  print "run <script_name> <parameter(s)>        Run the provided script pass the parameter(s)"
+  print "help                                 Get info about YO's subcommands"
 }
 
 yo_help_init() {
@@ -220,6 +261,13 @@ yo_help_package() {
 yo_help_watch() {
   print
   print "Usage: yo watch <package_name>"
+  print "'yo help' to see all available subcommands"
+}
+
+yo_help_run() {
+  print
+  print "Usage: yo run <script_name>"
+  print "Usage: yo run <script_name> <parameter(s)>"
   print "'yo help' to see all available subcommands"
 }
 # --------------------------------------------------------- #
@@ -250,6 +298,9 @@ yo() {
     watch)
       yo_watch "$path"
       ;;
+    run)
+      yo_run "$path"
+      ;;
     help)
       yo_help
       ;;
@@ -264,7 +315,7 @@ yo() {
 
 # ***** Helper functions ****** #
 
-# Save the current project root in currentProjectRoot variable and current project folder name in currentProjectFolderName variable
+# Save the current project root in currentProjectRoot variable and current project folder name in currentProjectDirectoryName variable
 yo_get_project_info() {
   _currentPath=$(pwd)
   _currentPathName=${_currentPath////_}
@@ -278,8 +329,8 @@ yo_get_project_info() {
     if [[ $_currentPathName == *"$_dir"* ]]; then
       cd "$_currentPath" || return
 
-      currentProjectFolderName="$_dir"
-      currentProjectRoot=$(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectFolderName"/config)
+      currentProjectDirectoryName="$_dir"
+      currentProjectRoot=$(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
       return
     fi
   done
