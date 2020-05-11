@@ -17,9 +17,12 @@ yo_init() {
     printError "Project already initialized"
   else
     mkdir "$HOME/.yo/$_projectConfigDirName"
-    echo "project_root=$(pwd)/" >"$HOME/.yo/$_projectConfigDirName/config"
-    echo "script_path=" >>"$HOME/.yo/$_projectConfigDirName/config"
-    echo "package_path=" >>"$HOME/.yo/$_projectConfigDirName/config"
+    {
+      echo "project_root=$(pwd)/"
+      echo "script_path="
+      echo "package_path="
+      echo "mockey_path="
+    } >>"$HOME/.yo/$_projectConfigDirName/config"
 
     printSuccess "Project initialized"
   fi
@@ -29,21 +32,27 @@ yo_set() {
   _option=$1
   _path=$2
 
-  case $_option in
-  -m)
-    echo
-    ;;
-  -s)
-    yo_script "$_path"
-    ;;
-  -p)
-    yo_package "$_path"
-    ;;
-  *)
-    printError "Unknown set option"
+  if [ -z "$_option" ]; then
+    printError "Please provide a set option"
     yo_help_set
-    ;;
-  esac
+  else
+    case $_option in
+    -m)
+      yo_mockey "$_path"
+      ;;
+    -s)
+      yo_script "$_path"
+      ;;
+    -p)
+      yo_package "$_path"
+      ;;
+    *)
+      printError "Unknown set option"
+      yo_help_set
+      ;;
+    esac
+  fi
+
 }
 
 # To set the path to bash scripts
@@ -286,7 +295,7 @@ yo_mock() {
   unset currentProjectDirectoryName
   unset currentProjectRoot
 
-  # Print error if package path has not been set
+  # Print error if mockey path has not been set
   if [ -z "$_currentProjectMockeyPath" ]; then
     printError "Please add mockey path"
     yo_help_mockey
@@ -295,7 +304,15 @@ yo_mock() {
 
   cd "$_currentProjectMockeyPath" || return
 
-  _jarArray=$(find -name "*.jar")
+  mapfile -t _jarArray < <(find . -type f -name "*.jar")
+
+  if [ ${#_jarArray[@]} -eq 0 ]; then
+    printError "No mockey jar found"
+    yo_help_mock
+    return
+  else
+    java -jar "${_jarArray[0]}"
+  fi
 
   cd "$_currentDirectory" || return
 }
@@ -358,6 +375,12 @@ yo_help_mockey() {
   print "'yo help' to see all available subcommands"
 }
 
+yo_help_mock() {
+  print
+  print "Usage: yo mock"
+  print "'yo help' to see all available subcommands"
+}
+
 yo_help_watch() {
   print
   print "Usage: yo watch <package_name>"
@@ -384,7 +407,7 @@ yo() {
       yo_init
       ;;
     set)
-      yo_set "$2 $3"
+      yo_set "$2" "$3"
       ;;
     get)
       yo_get "$_path"
@@ -398,6 +421,9 @@ yo() {
     run)
       # Pass arguments starting from second
       yo_run "${@:2}"
+      ;;
+    mock)
+      yo_mock
       ;;
     help)
       yo_help
