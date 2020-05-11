@@ -209,15 +209,16 @@ yo_run() {
   fi
 
   cd "$_currentProjectScriptPath" || return
+
   if [ -n "$1" ]; then
-    if [ -d "$1" ]; then
-      echo
+    if [ -x "$1" ]; then
+      eval "./$1" "${@:2}"
     else
-      printError "No such directory"
+      eval "bash $1" "${@:2}"
     fi
   else
     printError "Please provide the script name"
-    yo_help_watch
+    yo_help_run
   fi
 
   cd "$_currentDirectory" || return
@@ -227,17 +228,17 @@ yo_run() {
 yo_help() {
   print "Available YO subcommands"
   print
-  print "init                                 Initialize the project"
-  print "script <path>                        Add path (relative to the root of the project) to the scripts directory"
-  print "package <path>                       Add path (relative to the root of the project) to the packages directory"
-  print "get                                  Run 'flutter pub get' in all the packages"
-  print "test                                 Run 'flutter test' in all the packages"
-  print "get <package_name>                   Run 'flutter pub get' in the provided package"
-  print "test <package_name>                  Run 'flutter test' in the provided package"
-  print "watch <package_name>                 Run the 'build_runner' in the provided package"
-  print "run <script_name>                    Run the provided script"
-  print "run <script_name> <parameter(s)>        Run the provided script pass the parameter(s)"
-  print "help                                 Get info about YO's subcommands"
+  print "init                                    Initialize the project"
+  print "script <path>                           Add path (relative to the root of the project) to the scripts directory"
+  print "package <path>                          Add path (relative to the root of the project) to the packages directory"
+  print "get                                     Run 'flutter pub get' in all the packages"
+  print "test                                    Run 'flutter test' in all the packages"
+  print "get <package_name>                      Run 'flutter pub get' in the provided package"
+  print "test <package_name>                     Run 'flutter test' in the provided package"
+  print "watch <package_name>                    Run the 'build_runner' in the provided package"
+  print "run <script_name>                       Run the provided script"
+  print "run <script_name> <arguments(s)>        Run the provided script and pass the argument(s)"
+  print "help                                    Get info about YO's subcommands"
 }
 
 yo_help_init() {
@@ -267,7 +268,7 @@ yo_help_watch() {
 yo_help_run() {
   print
   print "Usage: yo run <script_name>"
-  print "Usage: yo run <script_name> <parameter(s)>"
+  print "Usage: yo run <script_name> <argument(s)>"
   print "'yo help' to see all available subcommands"
 }
 # --------------------------------------------------------- #
@@ -299,7 +300,7 @@ yo() {
       yo_watch "$path"
       ;;
     run)
-      yo_run "$path"
+      yo_run "${@:2}"
       ;;
     help)
       yo_help
