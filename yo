@@ -186,6 +186,7 @@ yo_watch() {
 
 # Run the provided script from the script directory
 # Print error if no script name is passed
+# Pass all passed arguments to script
 yo_run() {
   yo_verify_project_initialization
   if [ "$projectInitialized" -eq 0 ]; then
@@ -211,10 +212,15 @@ yo_run() {
   cd "$_currentProjectScriptPath" || return
 
   if [ -n "$1" ]; then
-    if [ -x "$1" ]; then
-      eval "./$1" "${@:2}"
+    if [ -e "$1" ]; then
+      if [ -x "$1" ]; then
+        # Pass arguments starting from second
+        eval "./$1" "${@:2}"
+      else
+        eval "bash $1" "${@:2}"
+      fi
     else
-      eval "bash $1" "${@:2}"
+      printError "Script $1 does not exist"
     fi
   else
     printError "Please provide the script name"
@@ -300,6 +306,7 @@ yo() {
       yo_watch "$path"
       ;;
     run)
+      # Pass arguments starting from second
       yo_run "${@:2}"
       ;;
     help)
