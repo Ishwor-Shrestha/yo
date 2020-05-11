@@ -92,7 +92,7 @@ yo_get() {
     if [ -d "$1" ]; then
       yo_flutter_command "$1" "flutter pub get"
     else
-      printError "No such directory"
+      printError "Package '$1' does not exist"
     fi
   else
     _directories=(*)
@@ -133,7 +133,7 @@ yo_test() {
     if [ -d "$1" ]; then
       yo_flutter_command "$1" "flutter test"
     else
-      printError "No such directory"
+      printError "Package '$1' does not exist"
     fi
   else
     _directories=(*)
@@ -174,7 +174,7 @@ yo_watch() {
     if [ -d "$1" ]; then
       yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs"
     else
-      printError "No such directory"
+      printError "Package '$1' does not exist"
     fi
   else
     printError "Please provide the package name"
@@ -220,7 +220,7 @@ yo_run() {
         eval "bash $1" "${@:2}"
       fi
     else
-      printError "Script $1 does not exist"
+      printError "Script '$1' does not exist"
     fi
   else
     printError "Please provide the script name"
