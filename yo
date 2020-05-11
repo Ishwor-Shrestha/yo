@@ -29,6 +29,12 @@ yo_init() {
 }
 
 yo_set() {
+  yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
+
   _option=$1
   _path=$2
 
@@ -65,7 +71,7 @@ yo_script() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|script_path=.*|script_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+    sed -i 's|script_path=.*|script_path='"$(pwd)/$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_script
@@ -84,7 +90,7 @@ yo_package() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|package_path=.*|package_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+    sed -i 's|package_path=.*|package_path='"$(pwd)/$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_package
@@ -103,7 +109,7 @@ yo_mockey() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|mockey_path=.*|mockey_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+    sed -i 's|mockey_path=.*|mockey_path='"$(pwd)/$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_mockey
@@ -329,11 +335,11 @@ yo_help() {
   print "test <package_name>                     Run 'flutter test' in the provided package"
   print "watch <package_name>                    Run the 'build_runner' in the provided package"
   print "run <script_name>                       Run the provided script"
-  print "run <script_name> <arguments(s)>        Run the provided script and pass the argument(s)"
+  print "run <script_name> <arguments(s)>        Run the provided script with the provided argument(s)"
   print "mock                                    Start mockey"
   print "help                                    Get info about YO's subcommands"
   print
-  print "Set options"
+  print "set options"
   print "-m        Set mockey directory"
   print "-p        Set packages directory"
   print "-s        set scripts directory"
