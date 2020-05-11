@@ -26,24 +26,24 @@ yo_init() {
 }
 
 yo_set() {
-  cmd=$1
-  path=$2
+  _option=$1
+  _path=$2
 
-    case $cmd in
-    -m)
-      echo
-      ;;
-    -s)
-      yo_script "$path"
-      ;;
-    -p)
-      yo_package "$path"
-      ;;
-    *)
-      printError "Unknown set option"
-      yo_help
-      ;;
-    esac
+  case $_option in
+  -m)
+    echo
+    ;;
+  -s)
+    yo_script "$_path"
+    ;;
+  -p)
+    yo_package "$_path"
+    ;;
+  *)
+    printError "Unknown set option"
+    yo_help_set
+    ;;
+  esac
 }
 
 # To set the path to bash scripts
@@ -79,6 +79,25 @@ yo_package() {
   else
     printError "Please provide the path"
     yo_help_package
+  fi
+  unset currentProjectRoot
+  unset currentProjectDirectoryName
+}
+
+# To set the path to mockey jar
+# Path should be relative to project root
+yo_mockey() {
+  yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
+
+  if [ -n "$1" ]; then
+    sed -i 's|mockey_path=.*|mockey_path='"$currentProjectRoot$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+  else
+    printError "Please provide the path"
+    yo_help_mockey
   fi
   unset currentProjectRoot
   unset currentProjectDirectoryName
@@ -141,7 +160,7 @@ yo_test() {
   unset currentProjectDirectoryName
   unset currentProjectRoot
 
-  # Print error if package path has not been set
+  # Print error if package _path has not been set
   if [ -z "$_currentProjectPackagePath" ]; then
     printError "Please add package path first"
     yo_help_package
@@ -251,14 +270,42 @@ yo_run() {
   cd "$_currentDirectory" || return
 }
 
+# Run the mockey jar from the mockey directory
+yo_mock() {
+  yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
+
+  _currentDirectory=$(pwd)
+
+  shopt -s nullglob
+
+  _currentProjectMockeyPath=$(grep -oP "(mockey_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  unset currentProjectDirectoryName
+  unset currentProjectRoot
+
+  # Print error if package path has not been set
+  if [ -z "$_currentProjectMockeyPath" ]; then
+    printError "Please add mockey path"
+    yo_help_mockey
+    return
+  fi
+
+  cd "$_currentProjectMockeyPath" || return
+
+  _jarArray=$(find -name "*.jar")
+
+  cd "$_currentDirectory" || return
+}
+
 # ------------------------- Helps ------------------------- #
 yo_help() {
   print "Available YO subcommands"
   print
   print "init                                    Initialize the project"
-  print "script <path>                           Add path (relative to the root of the project) to the scripts directory"
-  print "package <path>                          Add path (relative to the root of the project) to the packages directory"
-  print "mock <path>                             Add path (relative to the root of the project) to the packages directory"
+  print "set <option> <path>                     Add path (relative to the root of the project) to script/package/mockey directory"
   print "get                                     Run 'flutter pub get' in all the packages"
   print "test                                    Run 'flutter test' in all the packages"
   print "get <package_name>                      Run 'flutter pub get' in the provided package"
@@ -268,6 +315,11 @@ yo_help() {
   print "run <script_name> <arguments(s)>        Run the provided script and pass the argument(s)"
   print "mock                                    Start mockey"
   print "help                                    Get info about YO's subcommands"
+  print
+  print "Set options"
+  print "-m        Set mockey directory"
+  print "-p        Set packages directory"
+  print "-s        set scripts directory"
 }
 
 yo_help_init() {
@@ -276,15 +328,33 @@ yo_help_init() {
   print "'yo help' to see all available subcommands"
 }
 
+yo_help_set() {
+  print
+  print "Usage: yo set <option> <path>"
+  print
+  print "Set options"
+  print "-m        Set mockey directory"
+  print "-p        Set packages directory"
+  print "-s        set scripts directory"
+  print
+  print "'yo help' to see all available subcommands"
+}
+
 yo_help_script() {
   print
-  print "Usage: yo script <path>"
+  print "Usage: yo set -s <path>"
   print "'yo help' to see all available subcommands"
 }
 
 yo_help_package() {
   print
-  print "Usage: yo package <path>"
+  print "Usage: yo set -p <path>"
+  print "'yo help' to see all available subcommands"
+}
+
+yo_help_mockey() {
+  print
+  print "Usage: yo set -m <path>"
   print "'yo help' to see all available subcommands"
 }
 
@@ -303,30 +373,27 @@ yo_help_run() {
 # --------------------------------------------------------- #
 
 yo() {
-  cmd=$1
-  path=$2
+  _cmd=$1
+  _path=$2
 
   if [ -z "$1" ]; then
     yo_help
   else
-    case $cmd in
+    case $_cmd in
     init)
       yo_init
       ;;
-    script)
-      yo_script "$path"
-      ;;
-    package)
-      yo_package "$path"
+    set)
+      yo_set "$2 $3"
       ;;
     get)
-      yo_get "$path"
+      yo_get "$_path"
       ;;
     test)
-      yo_test "$path"
+      yo_test "$_path"
       ;;
     watch)
-      yo_watch "$path"
+      yo_watch "$_path"
       ;;
     run)
       # Pass arguments starting from second
