@@ -25,6 +25,27 @@ yo_init() {
   fi
 }
 
+yo_set() {
+  cmd=$1
+  path=$2
+
+    case $cmd in
+    -m)
+      echo
+      ;;
+    -s)
+      yo_script "$path"
+      ;;
+    -p)
+      yo_package "$path"
+      ;;
+    *)
+      printError "Unknown set option"
+      yo_help
+      ;;
+    esac
+}
+
 # To set the path to bash scripts
 # Path should be relative to project root
 yo_script() {
@@ -237,6 +258,7 @@ yo_help() {
   print "init                                    Initialize the project"
   print "script <path>                           Add path (relative to the root of the project) to the scripts directory"
   print "package <path>                          Add path (relative to the root of the project) to the packages directory"
+  print "mock <path>                             Add path (relative to the root of the project) to the packages directory"
   print "get                                     Run 'flutter pub get' in all the packages"
   print "test                                    Run 'flutter test' in all the packages"
   print "get <package_name>                      Run 'flutter pub get' in the provided package"
@@ -244,6 +266,7 @@ yo_help() {
   print "watch <package_name>                    Run the 'build_runner' in the provided package"
   print "run <script_name>                       Run the provided script"
   print "run <script_name> <arguments(s)>        Run the provided script and pass the argument(s)"
+  print "mock                                    Start mockey"
   print "help                                    Get info about YO's subcommands"
 }
 
