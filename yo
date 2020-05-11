@@ -71,7 +71,12 @@ yo_script() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|script_path=.*|script_path='"$(pwd)/$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+    if [ "$1" == "." ]; then
+      _scriptPath=$(pwd)/
+    else
+      _scriptPath=$(pwd)/$1
+    fi
+    sed -i 's|script_path=.*|script_path='"$_scriptPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_script
@@ -90,7 +95,12 @@ yo_package() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|package_path=.*|package_path='"$(pwd)/$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+    if [ "$1" == "." ]; then
+      _packagePath=$(pwd)/
+    else
+      _packagePath=$(pwd)/$1
+    fi
+    sed -i 's|package_path=.*|package_path='"$_packagePath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_package
@@ -109,7 +119,12 @@ yo_mockey() {
   fi
 
   if [ -n "$1" ]; then
-    sed -i 's|mockey_path=.*|mockey_path='"$(pwd)/$1"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+    if [ "$1" == "." ]; then
+      _mockeyPath=$(pwd)/
+    else
+      _mockeyPath=$(pwd)/$1
+    fi
+    sed -i 's|mockey_path=.*|mockey_path='"$_mockeyPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
   else
     printError "Please provide the path"
     yo_help_mockey
