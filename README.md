@@ -11,17 +11,16 @@
 
 #### Installation
 
-1. Download the script
-
+##### 1. Download the script
 `curl -o ~/Downloads/yo https://raw.githubusercontent.com/Ishwor-Shrestha/yo/master/yo`
 
 Make sure you replace `~/Downloads/` with your directory
 
-2. Append the following line at the end in your `.bashrc`
+##### 2. Append the following line at the end in your `.bashrc`
 
 `source ~/Downloads/yo`
 
-3. Activate the script
+##### 3. Activate the script
 
 `source ~/.bashrc`
 
