@@ -143,6 +143,7 @@ yo_get() {
 
   _currentDirectory=$(pwd)
 
+  shopt -s dotglob
   shopt -s nullglob
 
   _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
@@ -165,7 +166,7 @@ yo_get() {
       printError "Package '$1' does not exist"
     fi
   else
-    _directories=(*)
+    _directories=(*/)
     for _d in "${_directories[@]}"; do
       yo_flutter_command "$_d" "flutter pub get"
     done
@@ -206,7 +207,7 @@ yo_test() {
       printError "Package '$1' does not exist"
     fi
   else
-    _directories=(*)
+    _directories=(*/)
     for _d in "${_directories[@]}"; do
       yo_flutter_command "$_d" "flutter test"
     done
