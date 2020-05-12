@@ -394,9 +394,9 @@ yo_help() {
   print "-s        set scripts directory"
   print
   print "Allowed package names"
-  print "/c                      Run the command in the current directory"
-  print "/r                      Run the command in the root of the package directory"
-  print "<directory_name>        Run the command in the passed directory"
+  print "/c                      Run the subcommand in the current directory"
+  print "/r                      Run the subcommand in the root of the package directory"
+  print "<directory_name>        Run the subcommand in the passed directory"
 }
 
 yo_help_init() {
