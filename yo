@@ -148,7 +148,6 @@ yo_get() {
 
   _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
   unset currentProjectDirectoryName
-  unset currentProjectRoot
 
   # Print error if package path has not been set
   if [ -z "$_currentProjectPackagePath" ]; then
@@ -166,12 +165,14 @@ yo_get() {
       printError "Package '$1' does not exist"
     fi
   else
+    yo_flutter_command "$_currentProjectPackagePath" "flutter pub get" "$currentProjectRoot"
     _directories=(*/)
     for _d in "${_directories[@]}"; do
       yo_flutter_command "$_d" "flutter pub get"
     done
   fi
 
+  unset currentProjectRoot
   cd "$_currentDirectory" || return
 }
 
@@ -503,7 +504,15 @@ yo_flutter_command() {
   if [ -f "$_pubspec_file" ]; then
     eval "$2"
   fi
-  cd ..
+
+  echo "$1"
+  echo "$3"
+
+  echo "$1" != "$3"
+
+  if [ "$1" != "$3" ]; then # $3 is project root, if directory is project root, don't go back
+    cd ..
+  fi
 }
 
 # Color codes
