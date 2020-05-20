@@ -372,6 +372,26 @@ yo_mock() {
   cd "$_currentDirectory" || return
 }
 
+yo_path() {
+  yo_verify_project_initialization
+  if [ "$projectInitialized" -eq 0 ]; then
+    unset projectInitialized
+    return
+  fi
+
+  _currentDirectory=$(pwd)
+
+  shopt -s nullglob
+
+  print "Project root : $(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+  print "Package path : $(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+  print "Script path : $(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+  print "Mockey path : $(grep -oP "(mockey_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+
+  unset currentProjectDirectoryName
+  unset currentProjectRoot
+}
+
 # ------------------------- Helps ------------------------- #
 yo_help() {
   print "Available YO subcommands"
@@ -386,6 +406,7 @@ yo_help() {
   print "run <script_name>                       Run the provided script"
   print "run <script_name> <argument(s)>         Run the provided script with the provided argument(s)"
   print "mock                                    Start mockey"
+  print "path                                    Get set paths"
   print "help                                    Get info about YO's subcommands"
   print
   print "set options"
@@ -484,6 +505,9 @@ yo() {
       ;;
     mock)
       yo_mock
+      ;;
+    path)
+      yo_path
       ;;
     help)
       yo_help
