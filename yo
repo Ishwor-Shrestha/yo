@@ -217,6 +217,9 @@ yo_test() {
     /r)
       yo_flutter_command "$_currentProjectPackagePath" "flutter test" false # if /r is passed as package name, 'flutter test' will be run in package directory
       ;;
+    --coverage)
+      yo_test_coverage
+      ;;
     *)
       if [ -d "$1" ]; then
         yo_flutter_command "$1" "flutter test" true
@@ -235,6 +238,14 @@ yo_test() {
 
   unset currentProjectRoot
   cd "$_currentDirectory" || return
+}
+
+yo_test_coverage() {
+  if [ "$(command -v genhtml)" ]; then
+
+  else
+    printError "Please install lcov to run command"
+  fi
 }
 
 # Run `flutter build_runner` on specified package
@@ -400,8 +411,10 @@ yo_help() {
   print "set <option> <path>                     Add path (relative to the root of the project) to script/package/mockey directory"
   print "get                                     Run 'flutter pub get' in all the packages"
   print "test                                    Run 'flutter test' in all the packages"
+  print "test --coverage                         Run 'flutter test --coverage' in all the packages"
   print "get <package_name>                      Run 'flutter pub get' in the provided package"
   print "test <package_name>                     Run 'flutter test' in the provided package"
+  print "test <package_name> --coverage          Run 'flutter test --coverage' in the provided package"
   print "watch <package_name>                    Run the 'build_runner' in the provided package"
   print "run <script_name>                       Run the provided script"
   print "run <script_name> <argument(s)>         Run the provided script with the provided argument(s)"
@@ -494,7 +507,7 @@ yo() {
       yo_get "$_path"
       ;;
     test)
-      yo_test "$_path"
+      yo_test "$_path" $2
       ;;
     watch)
       yo_watch "$_path"
