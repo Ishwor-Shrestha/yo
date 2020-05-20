@@ -90,6 +90,22 @@ Run tests in the root of the package directory.
 yo test /r
 ```
 
+#### Run your tests coverage `flutter test --coverage`
+Run the tests coverage in a specific package.
+```shell script
+yo test <package_directory_name> --coverage
+```
+
+Run tests coverage in the current directory.
+```shell script
+yo test /c --coverage
+```
+
+Run tests coverage in the root of the package directory.
+```shell script
+yo test /r --coverage
+```
+
 #### Run your `build_runner` and start watching
 - Learn about [build_runner](https://pub.dev/packages/build_runner).
 
@@ -109,15 +125,10 @@ Run `build_runner` in the root of the package directory.
 yo watch /r
 ```
 
-#### Start Mockey
-- Learn about [Mockey](https://github.com/clafonta/Mockey).
+#### Start Mockoon
+- Learn about [Mockoon](https://mockoon.com/).
 
-In order to start mockey, you'll first have to set the path to the mockey jar.
-```shell script
-yo set -m <path_to_mockety_jar>
-```
-
-Then you can start mockey
+In order to start mockoon, use the following command. Make sure you've installed mockoon first.
 ```shell script
 yo mock
 ```
