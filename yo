@@ -212,22 +212,36 @@ yo_test() {
   if [ -n "$1" ]; then
     case $1 in
     /c)
-      yo_flutter_command "$_currentDirectory" "flutter test" false # if /c is passed as package name, 'flutter test' will be run in current directory
+      # if /c is passed as package name, 'flutter test' will be run in current directory
+      _testDir="$_currentDirectory"
+      _shouldGoBack=false
       ;;
     /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter test" false # if /r is passed as package name, 'flutter test' will be run in package directory
-      ;;
-    --coverage)
-      yo_test_coverage
+      # if /r is passed as package name, 'flutter test' will be run in package directory
+      _testDir="$_currentProjectPackagePath"
+      _shouldGoBack=false
       ;;
     *)
       if [ -d "$1" ]; then
-        yo_flutter_command "$1" "flutter test" true
+        _testDir="$1"
+        _shouldGoBack=true
       else
         printError "Package '$1' does not exist"
+        unset currentProjectRoot
+        return
       fi
       ;;
     esac
+    if [ -z "$2" ]; then
+      yo_flutter_command "$_testDir" "flutter test" $_shouldGoBack
+    else
+      if [ "$2" == "--coverage" ]; then
+        yo_test_coverage "$_testDir"
+      else
+        printError "Please use correct test option"
+        yo_help_test_coverage
+      fi
+    fi
   else
     yo_flutter_command "$_currentProjectPackagePath" "flutter test" false
     _directories=(*/)
@@ -242,7 +256,18 @@ yo_test() {
 
 yo_test_coverage() {
   if [ "$(command -v genhtml)" ]; then
+    yo_flutter_command "$1" "flutter test --coverage" true
+    cd "$1" || return
+    genhtml coverage/lcov.info -o coverage/html
 
+    _htmlLocation="coverage/html/index.html"
+    if [ "$(command -v open-xdg)" ]; then
+      open-xdg $_htmlLocation
+    elif [ "$(command -v start)" ]; then
+      start $_htmlLocation
+    elif [ "$(command -v open)" ]; then
+      open $_htmlLocation
+    fi
   else
     printError "Please install lcov to run command"
   fi
@@ -411,7 +436,6 @@ yo_help() {
   print "set <option> <path>                     Add path (relative to the root of the project) to script/package/mockey directory"
   print "get                                     Run 'flutter pub get' in all the packages"
   print "test                                    Run 'flutter test' in all the packages"
-  print "test --coverage                         Run 'flutter test --coverage' in all the packages"
   print "get <package_name>                      Run 'flutter pub get' in the provided package"
   print "test <package_name>                     Run 'flutter test' in the provided package"
   print "test <package_name> --coverage          Run 'flutter test --coverage' in the provided package"
@@ -454,6 +478,12 @@ yo_help_set() {
 yo_help_script() {
   print
   print "Usage: yo set -s <path>"
+  print "'yo help' to see all available subcommands"
+}
+
+yo_help_test_coverage() {
+  print
+  print "Usage: yo test <package> --coverage"
   print "'yo help' to see all available subcommands"
 }
 
@@ -507,7 +537,7 @@ yo() {
       yo_get "$_path"
       ;;
     test)
-      yo_test "$_path" $2
+      yo_test "$_path" "$3"
       ;;
     watch)
       yo_watch "$_path"
@@ -586,21 +616,21 @@ yo_flutter_command() {
 
 # Color codes
 # Color codes
-_ERROR='\033[38;5;9m'
-_SUCCESS='\033[38;5;10m'
+_ERROR='\033[1;31m'
+_SUCCESS='\033[1;32m'
 _YELLOW='\033[1;33m'
 _NO_COLOR='\033[0m'
 
 printError() {
-  echo -e "${_ERROR}*** $1 ***"
+  echo -e "${_ERROR}*** $1 ***${_ERROR}"
 }
 
 printSuccess() {
-  echo -e "${_SUCCESS}*** $1 ***"
+  echo -e "${_SUCCESS}*** $1 ***${_ERROR}"
 }
 
 printInfo() {
-  echo -e "${_YELLOW}*** $1 ***"
+  echo -e "${_YELLOW}*** $1 ***${_ERROR}"
 }
 
 print() {
