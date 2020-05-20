@@ -21,7 +21,6 @@ yo_init() {
       echo "project_root=$(pwd)/"
       echo "script_path="
       echo "package_path="
-      echo "mockey_path="
     } >>"$HOME/.yo/$_projectConfigDirName/config"
 
     printSuccess "Project initialized"
@@ -43,9 +42,6 @@ yo_set() {
     yo_help_set
   else
     case $_option in
-    -m)
-      yo_mockey "$_path"
-      ;;
     -s)
       yo_script "$_path"
       ;;
@@ -104,30 +100,6 @@ yo_package() {
   else
     printError "Please provide the path"
     yo_help_package
-  fi
-  unset currentProjectRoot
-  unset currentProjectDirectoryName
-}
-
-# To set the path to mockey jar
-# Path should be relative to project root
-yo_mockey() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
-
-  if [ -n "$1" ]; then
-    if [ "$1" == "." ]; then
-      _mockeyPath=$(pwd)/
-    else
-      _mockeyPath=$(pwd)/$1
-    fi
-    sed -i 's|mockey_path=.*|mockey_path='"$_mockeyPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
-  else
-    printError "Please provide the path"
-    yo_help_mockey
   fi
   unset currentProjectRoot
   unset currentProjectDirectoryName
@@ -255,21 +227,24 @@ yo_test() {
 }
 
 yo_test_coverage() {
-  if [ "$(command -v genhtml)" ]; then
-    yo_flutter_command "$1" "flutter test --coverage" true
-    cd "$1" || return
-    genhtml coverage/lcov.info -o coverage/html
+  yo_flutter_command "$1" "flutter test --coverage" true
+  _lcovLocation=coverage/lcov.info
+  if [ -f $_lcovLocation ]; then
+    if [ "$(command -v genhtml)" ]; then
+      cd "$1" || return
+      genhtml coverage/lcov.info -o coverage/html
 
-    _htmlLocation="coverage/html/index.html"
-    if [ "$(command -v open-xdg)" ]; then
-      open-xdg $_htmlLocation
-    elif [ "$(command -v start)" ]; then
-      start $_htmlLocation
-    elif [ "$(command -v open)" ]; then
-      open $_htmlLocation
+      _htmlLocation="coverage/html/index.html"
+      if [ "$(command -v open-xdg)" ]; then
+        open-xdg $_htmlLocation
+      elif [ "$(command -v start)" ]; then
+        start $_htmlLocation
+      elif [ "$(command -v open)" ]; then
+        open $_htmlLocation
+      fi
+    else
+      printError "Please install lcov to run command"
     fi
-  else
-    printError "Please install lcov to run command"
   fi
 }
 
@@ -370,7 +345,7 @@ yo_run() {
   cd "$_currentDirectory" || return
 }
 
-# Run the mockey jar from the mockey directory
+# Run the mockoon if installed
 yo_mock() {
   yo_verify_project_initialization
   if [ "$projectInitialized" -eq 0 ]; then
@@ -378,34 +353,12 @@ yo_mock() {
     return
   fi
 
-  _currentDirectory=$(pwd)
-
-  shopt -s nullglob
-
-  _currentProjectMockeyPath=$(grep -oP "(mockey_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
-  unset currentProjectDirectoryName
-  unset currentProjectRoot
-
-  # Print error if mockey path has not been set
-  if [ -z "$_currentProjectMockeyPath" ]; then
-    printError "Please add mockey path"
-    yo_help_mockey
-    return
-  fi
-
-  cd "$_currentProjectMockeyPath" || return
-
-  mapfile -t _jarArray < <(find . -type f -name "*.jar")
-
-  if [ ${#_jarArray[@]} -eq 0 ]; then
-    printError "No mockey jar found"
-    yo_help_mock
-    return
+  if [ "$(command -v mockoon)" ]; then
+    mockoon
   else
-    java -jar "${_jarArray[0]}"
+    printError "Please install mockoon"
+    printInfo "Visit https://mockoon.com/ to see how to install mockoon"
   fi
-
-  cd "$_currentDirectory" || return
 }
 
 yo_path() {
@@ -422,7 +375,6 @@ yo_path() {
   print "Project root : $(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
   print "Package path : $(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
   print "Script path : $(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
-  print "Mockey path : $(grep -oP "(mockey_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
 
   unset currentProjectDirectoryName
   unset currentProjectRoot
@@ -433,7 +385,7 @@ yo_help() {
   print "Available YO subcommands"
   print
   print "init                                    Initialize the project"
-  print "set <option> <path>                     Add path (relative to the root of the project) to script/package/mockey directory"
+  print "set <option> <path>                     Add path (relative to the root of the project) to script/package directory"
   print "get                                     Run 'flutter pub get' in all the packages"
   print "test                                    Run 'flutter test' in all the packages"
   print "get <package_name>                      Run 'flutter pub get' in the provided package"
@@ -442,12 +394,11 @@ yo_help() {
   print "watch <package_name>                    Run the 'build_runner' in the provided package"
   print "run <script_name>                       Run the provided script"
   print "run <script_name> <argument(s)>         Run the provided script with the provided argument(s)"
-  print "mock                                    Start mockey"
+  print "mock                                    Start mockoon"
   print "path                                    Get set paths"
   print "help                                    Get info about YO's subcommands"
   print
   print "set options"
-  print "-m        Set mockey directory"
   print "-p        Set packages directory"
   print "-s        set scripts directory"
   print
@@ -468,7 +419,6 @@ yo_help_set() {
   print "Usage: yo set <option> <path>"
   print
   print "Set options"
-  print "-m        Set mockey directory"
   print "-p        Set packages directory"
   print "-s        set scripts directory"
   print
@@ -490,12 +440,6 @@ yo_help_test_coverage() {
 yo_help_package() {
   print
   print "Usage: yo set -p <path>"
-  print "'yo help' to see all available subcommands"
-}
-
-yo_help_mockey() {
-  print
-  print "Usage: yo set -m <path>"
   print "'yo help' to see all available subcommands"
 }
 
@@ -607,6 +551,8 @@ yo_flutter_command() {
   _pubspec_file=pubspec.yaml
   if [ -f "$_pubspec_file" ]; then
     eval "$2"
+  else
+    printError "Please pass the correct package name"
   fi
 
   if $3; then # to go back or not
@@ -622,15 +568,15 @@ _YELLOW='\033[1;33m'
 _NO_COLOR='\033[0m'
 
 printError() {
-  echo -e "${_ERROR}*** $1 ***${_ERROR}"
+  echo -e "${_ERROR}*** $1 ***${_NO_COLOR}"
 }
 
 printSuccess() {
-  echo -e "${_SUCCESS}*** $1 ***${_ERROR}"
+  echo -e "${_SUCCESS}*** $1 ***${_NO_COLOR}"
 }
 
 printInfo() {
-  echo -e "${_YELLOW}*** $1 ***${_ERROR}"
+  echo -e "${_YELLOW}*** $1 ***${_NO_COLOR}"
 }
 
 print() {
