@@ -232,6 +232,7 @@ yo_test_coverage() {
   if [ -f $_lcovLocation ]; then
     if [ "$(command -v genhtml)" ]; then
       cd "$1" || return
+
       genhtml coverage/lcov.info -o coverage/html
 
       _htmlLocation="coverage/html/index.html"
