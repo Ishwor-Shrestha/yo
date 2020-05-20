@@ -548,23 +548,24 @@ yo_flutter_command() {
 }
 
 # Color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NO_COLOR='\033[0m'
+# Color codes
+_ERROR='\033[38;5;9m'
+_SUCCESS='\033[38;5;10m'
+_YELLOW='\033[1;33m'
+_NO_COLOR='\033[0m'
 
 printError() {
-  echo -e "${RED}*** $1 ***"
+  echo -e "${_ERROR}*** $1 ***"
 }
 
 printSuccess() {
-  echo -e "${GREEN}*** $1 ***"
+  echo -e "${_SUCCESS}*** $1 ***"
 }
 
 printInfo() {
-  echo -e "${YELLOW}*** $1 ***"
+  echo -e "${_YELLOW}*** $1 ***"
 }
 
 print() {
-  echo -e "${NO_COLOR}$1"
+  echo -e "${_NO_COLOR}$1"
 }
