@@ -1,564 +1,545 @@
 #!/usr/bin/bash
+
 #!/bin/bash
+
+# Global variables
+currentProjectRoot=
+currentProjectDirectoryName=
+projectInitialized=
 
 # To initialize a project
 yo_init() {
-  # Create .yo directory in home if does not exist
-  mkdir -p "$HOME/.yo"
+    # Create .yo directory in home if does not exist
+    mkdir -p "$HOME/.yo"
+    local _yoInitPath=$(pwd)
+    local _projectConfigDirName=${_yoInitPath////_}
 
-  _yoInitPath=$(pwd)
-  _projectConfigDirName=${_yoInitPath////_}
+    # Creates a project config directory if does not exist
+    # Sub directories under initialized directory cannot be initialized
+    yo_get_project_info
+    if [[ -d "$HOME/.yo/$_projectConfigDirName" ]] || [[ -n "$currentProjectRoot" ]]; then
+        printError "Project already initialized"
+    else
+        mkdir "$HOME/.yo/$_projectConfigDirName"
+        {
+            echo "project_root=$(pwd)/"
+            echo "script_path="
+            echo "package_path="
+        } >>"$HOME/.yo/$_projectConfigDirName/config"
 
-  # Creates a project config directory if does not exist
-  # Sub directories under initialized directory cannot be initialized
-  yo_get_project_info
-  if [ -d "$HOME/.yo/$_projectConfigDirName" ] || [[ -n "$currentProjectRoot" ]]; then
-    unset currentProjectRoot
-    printError "Project already initialized"
-  else
-    mkdir "$HOME/.yo/$_projectConfigDirName"
-    {
-      echo "project_root=$(pwd)/"
-      echo "script_path="
-      echo "package_path="
-    } >>"$HOME/.yo/$_projectConfigDirName/config"
-
-    printSuccess "Project initialized"
-  fi
+        printSuccess "Project initialized"
+    fi
 }
 
 yo_set() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
+    local _option=$1
+    local _path=$2
 
-  _option=$1
-  _path=$2
-
-  if [ -z "$_option" ]; then
-    printError "Please provide a set option"
-    yo_help_set
-  else
-    case $_option in
-    -s)
-      yo_script "$_path"
-      ;;
-    -p)
-      yo_package "$_path"
-      ;;
-    *)
-      printError "Unknown set option"
-      yo_help_set
-      ;;
-    esac
-  fi
-
+    if [[ -z "$_option" ]]; then
+        printError "Please provide a set option"
+        yo_help_set
+    else
+        case ${_option} in
+            -s)
+                yo_script "$_path"
+            ;;
+            -p)
+                yo_package "$_path"
+            ;;
+            *)
+                printError "Unknown set option"
+                yo_help_set
+            ;;
+        esac
+    fi
 }
 
 # To set the path to bash scripts
 # Path should be relative to project root
+# Set current directory as path if /c is passed
 yo_script() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
-
-  if [ -n "$1" ]; then
-    if [ "$1" == "." ]; then
-      _scriptPath=$(pwd)/
+    if [[ -n "$1" ]]; then
+        if [[ "$1" == "/c" ]]; then
+            _scriptPath=$(pwd)/
+        else
+            _scriptPath=$(pwd)/$1
+        fi
+        sed -i 's|script_path=.*|script_path='"$_scriptPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
     else
-      _scriptPath=$(pwd)/$1
+        printError "Please provide the path"
+        yo_help_script
     fi
-    sed -i 's|script_path=.*|script_path='"$_scriptPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
-  else
-    printError "Please provide the path"
-    yo_help_script
-  fi
-  unset currentProjectRoot
-  unset currentProjectDirectoryName
 }
 
 # To set the path to flutter package(s)
 # Path should be relative to project root
+# Set current directory as path if /c is passed
 yo_package() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
-
-  if [ -n "$1" ]; then
-    if [ "$1" == "." ]; then
-      _packagePath=$(pwd)/
+    if [[ -n "$1" ]]; then
+        if [[ "$1" == "/c" ]]; then
+            _packagePath=$(pwd)/
+        else
+            _packagePath=$(pwd)/$1
+        fi
+        sed -i 's|package_path=.*|package_path='"$_packagePath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
     else
-      _packagePath=$(pwd)/$1
+        printError "Please provide the path"
+        yo_help_package
     fi
-    sed -i 's|package_path=.*|package_path='"$_packagePath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
-  else
-    printError "Please provide the path"
-    yo_help_package
-  fi
-  unset currentProjectRoot
-  unset currentProjectDirectoryName
 }
 
 # Run `flutter pub get` on specified package. If no package is specified, `flutter pub get` will be run on all packages
 yo_get() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
+    local _currentDirectory=$(pwd)
 
-  _currentDirectory=$(pwd)
+    shopt -s nullglob
 
-  shopt -s nullglob
+    local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
-  _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
-  unset currentProjectDirectoryName
+    # Print error if package path has not been set
+    if [[ -z "$_currentProjectPackagePath" ]]; then
+        printError "Please add package path first"
+        yo_help_package
+        return
+    fi
 
-  # Print error if package path has not been set
-  if [ -z "$_currentProjectPackagePath" ]; then
-    printError "Please add package path first"
-    yo_help_package
-    return
-  fi
+    cd "$_currentProjectPackagePath" || return
 
-  cd "$_currentProjectPackagePath" || return
+    if [[ -n "$1" ]]; then
+        case $1 in
+            /c)
+                yo_flutter_command "$_currentDirectory" "flutter pub get" -verbose # if /c is passed in package name, 'flutter pub get' will be run in current directory
+            ;;
+            /r)
+                yo_flutter_command "$_currentProjectPackagePath" "flutter pub get" -verbose # if /r is passed in package name, 'flutter pub get' will be run in package directory
+            ;;
+            *)
+                if [[ -d "$1" ]]; then
+                    yo_flutter_command "$1" "flutter pub get" -verbose -back
+                else
+                    printError "Package '$1' does not exist"
+                fi
+            ;;
+        esac
+    else
+        yo_flutter_command "$_currentProjectPackagePath" "flutter pub get" # Run 'flutter pub get' in package directory too
+        _directories=( */ )
+        for _d in "${_directories[@]}"; do
+            yo_flutter_command "$_d" "flutter pub get" -back
+        done
+    fi
 
-  if [ -n "$1" ]; then
-    case $1 in
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter pub get" false # if /c is passed in package name, 'flutter pub get' will be run in current directory
-      ;;
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter pub get" false # if /r is passed in package name, 'flutter pub get' will be run in package directory
-      ;;
-    *)
-      if [ -d "$1" ]; then
-        yo_flutter_command "$1" "flutter pub get" true
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
-  else
-    yo_flutter_command "$_currentProjectPackagePath" "flutter pub get" false # Run 'flutter pub get' in package directory too
-    _directories=(*/)
-    for _d in "${_directories[@]}"; do
-      yo_flutter_command "$_d" "flutter pub get" true
-    done
-  fi
-
-  unset currentProjectRoot
-  cd "$_currentDirectory" || return
+    cd "$_currentDirectory" || return
 }
 
 # Run `flutter test` on specified package. If no package is specified, `flutter test` will be run on all packages
 yo_test() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
+    local _currentDirectory=$(pwd)
 
-  _currentDirectory=$(pwd)
+    shopt -s nullglob
 
-  shopt -s nullglob
+    local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
-  _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
-  unset currentProjectDirectoryName
-
-  # Print error if package _path has not been set
-  if [ -z "$_currentProjectPackagePath" ]; then
-    printError "Please add package path first"
-    yo_help_package
-    return
-  fi
-
-  cd "$_currentProjectPackagePath" || return
-
-  if [ -n "$1" ]; then
-    case $1 in
-    /c)
-      # if /c is passed as package name, 'flutter test' will be run in current directory
-      _testDir="$_currentDirectory"
-      _shouldGoBack=false
-      ;;
-    /r)
-      # if /r is passed as package name, 'flutter test' will be run in package directory
-      _testDir="$_currentProjectPackagePath"
-      _shouldGoBack=false
-      ;;
-    *)
-      if [ -d "$1" ]; then
-        _testDir="$1"
-        _shouldGoBack=true
-      else
-        printError "Package '$1' does not exist"
-        unset currentProjectRoot
+    # Print error if package _path has not been set
+    if [[ -z "$_currentProjectPackagePath" ]]; then
+        printError "Please add package path first"
+        yo_help_package
         return
-      fi
-      ;;
-    esac
-    if [ -z "$2" ]; then
-      yo_flutter_command "$_testDir" "flutter test" $_shouldGoBack
-    else
-      if [ "$2" == "--coverage" ]; then
-        yo_test_coverage "$_testDir"
-      else
-        printError "Please use correct test option"
-        yo_help_test_coverage
-      fi
     fi
-  else
-    yo_flutter_command "$_currentProjectPackagePath" "flutter test" false
-    _directories=(*/)
-    for _d in "${_directories[@]}"; do
-      yo_flutter_command "$_d" "flutter test" true
-    done
-  fi
 
-  unset currentProjectRoot
-  cd "$_currentDirectory" || return
+    cd "$_currentProjectPackagePath" || return
+
+    local _command
+    if [[ -n "$1" ]]; then
+        case $1 in
+            /c)
+            # if /c is passed as package name, 'flutter test' will be run in current directory
+                _command="yo_flutter_command $_currentDirectory flutter test -verbose"
+            ;;
+            /r)
+            # if /r is passed as package name, 'flutter test' will be run in package directory
+                _command="yo_flutter_command $_currentProjectPackagePath flutter test -verbose"
+            ;;
+            *)
+                if [[ -d "$1" ]]; then
+                    _testDir="$1"
+                    _shouldGoBack=true
+                    _verbose=true
+
+                    _command="yo_flutter_command $1 flutter test -verbose -back"
+                else
+                    printError "Package '$1' does not exist"
+                    return
+                fi
+            ;;
+        esac
+        if [[ -z "$2" ]]; then
+            eval "${_command}"
+        else
+            if [[ "$2" == "--coverage" ]]; then
+                yo_test_coverage "$_testDir"
+            else
+                printError "Please use correct test option"
+                yo_help_test_coverage
+            fi
+        fi
+    else
+        yo_flutter_command "$_currentProjectPackagePath" "flutter test"
+        _directories=( */ )
+        for _d in "${_directories[@]}"; do
+            yo_flutter_command "$_d" "flutter test" -back
+        done
+    fi
+
+    cd "$_currentDirectory" || return
 }
 
 yo_test_coverage() {
-  yo_flutter_command "$1" "flutter test --coverage" true
-  _lcovLocation=coverage/lcov.info
-  if [ -f $_lcovLocation ]; then
-    if [ "$(command -v genhtml)" ]; then
-      cd "$1" || return
+    yo_flutter_command "$1" "flutter test --coverage" -verbose -back
+    local _lcovLocation=$1/coverage/lcov.info
+    if [[ -f ${_lcovLocation} ]]; then
+        if [[ "$(command -v genhtml)" ]]; then
+            cd "$1" || return
 
-      genhtml coverage/lcov.info -o coverage/html
+            genhtml coverage/lcov.info -o coverage/html
 
-      _htmlLocation="coverage/html/index.html"
-      if [ "$(command -v open-xdg)" ]; then
-        open-xdg $_htmlLocation
-      elif [ "$(command -v start)" ]; then
-        start $_htmlLocation
-      elif [ "$(command -v open)" ]; then
-        open $_htmlLocation
-      fi
-    else
-      printError "Please install lcov to run command"
+            _htmlLocation="coverage/html/index.html"
+            if [[ "$(command -v open-xdg)" ]]; then
+                open-xdg ${_htmlLocation}
+            elif [[ "$(command -v start)" ]]; then
+                start ${_htmlLocation}
+            elif [[ "$(command -v open)" ]]; then
+                open ${_htmlLocation}
+            fi
+        else
+            printError "Please install lcov to run command"
+        fi
     fi
-  fi
 }
 
 # Run `flutter build_runner` on specified package
 # Print error if no package name is passed
 yo_watch() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
+    _currentDirectory=$(pwd)
 
-  _currentDirectory=$(pwd)
+    shopt -s nullglob
 
-  shopt -s nullglob
+    _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+    unset currentProjectDirectoryName
+    unset currentProjectRoot
 
-  _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
-  unset currentProjectDirectoryName
-  unset currentProjectRoot
+    # Print error if package path has not been set
+    if [ -z "$_currentProjectPackagePath" ]; then
+        printError "Please add package path"
+        yo_help_package
+        return
+    fi
 
-  # Print error if package path has not been set
-  if [ -z "$_currentProjectPackagePath" ]; then
-    printError "Please add package path"
-    yo_help_package
-    return
-  fi
+    cd "$_currentProjectPackagePath" || return
 
-  cd "$_currentProjectPackagePath" || return
+    if [ -n "$1" ]; then
+        case $1 in
+            /r)
+                yo_flutter_command "$_currentProjectPackagePath" "flutter pub run build_runner watch --delete-conflicting-outputs" false # if /c is passed as package name, build_runner will be run in package directory
+            ;;
+            /c)
+                yo_flutter_command "$_currentDirectory" "flutter pub run build_runner watch --delete-conflicting-outputs" false # if /c is passed as package name, build_runner will be run in current directory
+            ;;
+            *)
+                if [ -d "$1" ]; then
+                    yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs" true
+                else
+                    printError "Package '$1' does not exist"
+                fi
+            ;;
+        esac
 
-  if [ -n "$1" ]; then
-    case $1 in
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter pub run build_runner watch --delete-conflicting-outputs" false # if /c is passed as package name, build_runner will be run in package directory
-      ;;
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter pub run build_runner watch --delete-conflicting-outputs" false # if /c is passed as package name, build_runner will be run in current directory
-      ;;
-    *)
-      if [ -d "$1" ]; then
-        yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs" true
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
+    else
+        printError "Please provide the package name"
+        yo_help_watch
+    fi
 
-  else
-    printError "Please provide the package name"
-    yo_help_watch
-  fi
-
-  cd "$_currentDirectory" || return
+    cd "$_currentDirectory" || return
 }
 
 # Run the provided script from the script directory
 # Print error if no script name is passed
 # Pass all passed arguments to script
 yo_run() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
+    _currentDirectory=$(pwd)
 
-  _currentDirectory=$(pwd)
+    shopt -s nullglob
 
-  shopt -s nullglob
+    _currentProjectScriptPath=$(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+    unset currentProjectDirectoryName
+    unset currentProjectRoot
 
-  _currentProjectScriptPath=$(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
-  unset currentProjectDirectoryName
-  unset currentProjectRoot
-
-  # Print error if package path has not been set
-  if [ -z "$_currentProjectScriptPath" ]; then
-    printError "Please add script path"
-    yo_help_script
-    return
-  fi
-
-  cd "$_currentProjectScriptPath" || return
-
-  if [ -n "$1" ]; then
-    if [ -e "$1" ]; then
-      if [ -x "$1" ]; then
-        # Pass arguments starting from second
-        eval "./$1" "${@:2}"
-      else
-        eval "bash $1" "${@:2}"
-      fi
-    else
-      printError "Script '$1' does not exist"
+    # Print error if package path has not been set
+    if [ -z "$_currentProjectScriptPath" ]; then
+        printError "Please add script path"
+        yo_help_script
+        return
     fi
-  else
-    printError "Please provide the script name"
-    yo_help_run
-  fi
 
-  cd "$_currentDirectory" || return
+    cd "$_currentProjectScriptPath" || return
+
+    if [ -n "$1" ]; then
+        if [ -e "$1" ]; then
+            if [ -x "$1" ]; then
+                # Pass arguments starting from second
+                eval "./$1" "${@:2}"
+            else
+                eval "bash$1" "${@:2}"
+            fi
+        else
+            printError "Script '$1' does not exist"
+        fi
+    else
+        printError "Please provide the script name"
+        yo_help_run
+    fi
+
+    cd "$_currentDirectory" || return
 }
 
 # Run the mockoon if installed
 yo_mock() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
-
-  if [ "$(command -v mockoon)" ]; then
-    mockoon
-  else
-    printError "Please install mockoon"
-    printInfo "Visit https://mockoon.com/ to see how to install mockoon"
-  fi
+    if [ "$(command -v mockoon)" ]; then
+        mockoon
+    else
+        printError "Please install mockoon"
+        printInfo "Visit https://mockoon.com/ to see how to install mockoon"
+    fi
 }
 
 yo_path() {
-  yo_verify_project_initialization
-  if [ "$projectInitialized" -eq 0 ]; then
-    unset projectInitialized
-    return
-  fi
+    _currentDirectory=$(pwd)
 
-  _currentDirectory=$(pwd)
+    shopt -s nullglob
 
-  shopt -s nullglob
+    print "Project root : $(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+    print "Package path : $(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+    print "Script path : $(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
 
-  print "Project root : $(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
-  print "Package path : $(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
-  print "Script path : $(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
-
-  unset currentProjectDirectoryName
-  unset currentProjectRoot
+    unset currentProjectDirectoryName
+    unset currentProjectRoot
 }
 
 # ------------------------- Helps ------------------------- #
 yo_help() {
-  print "Available YO subcommands"
-  print
-  print "init                                    Initialize the project"
-  print "set <option> <path>                     Add path (relative to the root of the project) to script/package directory"
-  print "get                                     Run 'flutter pub get' in all the packages"
-  print "test                                    Run 'flutter test' in all the packages"
-  print "get <package_name>                      Run 'flutter pub get' in the provided package"
-  print "test <package_name>                     Run 'flutter test' in the provided package"
-  print "test <package_name> --coverage          Run 'flutter test --coverage' in the provided package"
-  print "watch <package_name>                    Run the 'build_runner' in the provided package"
-  print "run <script_name>                       Run the provided script"
-  print "run <script_name> <argument(s)>         Run the provided script with the provided argument(s)"
-  print "mock                                    Start mockoon"
-  print "path                                    Get set paths"
-  print "help                                    Get info about YO's subcommands"
-  print
-  print "set options"
-  print "-p        Set packages directory"
-  print "-s        set scripts directory"
-  print
-  print "Allowed package names"
-  print "/c                      Run the subcommand in the current directory"
-  print "/r                      Run the subcommand in the root of the package directory"
-  print "<directory_name>        Run the subcommand in the passed directory"
+    print "Available YO subcommands"
+    print
+    print "init                                    Initialize the project"
+    print "set <option> <path>                     Add path (relative to the root of the project) to script/package directory"
+    print "get                                     Run 'flutter pub get' in all the packages"
+    print "test                                    Run 'flutter test' in all the packages"
+    print "get <package_name>                      Run 'flutter pub get' in the provided package"
+    print "test <package_name>                     Run 'flutter test' in the provided package"
+    print "test <package_name> --coverage          Run 'flutter test --coverage' in the provided package"
+    print "watch <package_name>                    Run the 'build_runner' in the provided package"
+    print "run <script_name>                       Run the provided script"
+    print "run <script_name> <argument(s)>         Run the provided script with the provided argument(s)"
+    print "mock                                    Start mockoon"
+    print "path                                    Get set paths"
+    print "help                                    Get info about YO's subcommands"
+    print
+    print "set options"
+    print "-p        Set packages directory"
+    print "-s        set scripts directory"
+    print
+    print "Allowed package names"
+    print "/c                      Run the subcommand in the current directory"
+    print "/r                      Run the subcommand in the root of the package directory"
+    print "<directory_name>        Run the subcommand in the passed directory"
 }
 
 yo_help_init() {
-  print
-  print "Usage: yo init"
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo init"
+    print "'yo help' to see all available subcommands"
 }
 
 yo_help_set() {
-  print
-  print "Usage: yo set <option> <path>"
-  print
-  print "Set options"
-  print "-p        Set packages directory"
-  print "-s        set scripts directory"
-  print
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo set <option> <path>"
+    print
+    print "Set options"
+    print "-p        Set packages directory"
+    print "-s        set scripts directory"
+    print
+    print "'yo help' to see all available subcommands"
 }
 
 yo_help_script() {
-  print
-  print "Usage: yo set -s <path>"
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo set -s <path>"
+    print "'yo help' to see all available subcommands"
 }
 
 yo_help_test_coverage() {
-  print
-  print "Usage: yo test <package> --coverage"
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo test <package> --coverage"
+    print "'yo help' to see all available subcommands"
 }
 
 yo_help_package() {
-  print
-  print "Usage: yo set -p <path>"
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo set -p <path>"
+    print "'yo help' to see all available subcommands"
 }
 
 yo_help_mock() {
-  print
-  print "Usage: yo mock"
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo mock"
+    print "'yo help' to see all available subcommands"
 }
 
 yo_help_watch() {
-  print
-  print "Usage: yo watch <package_name>"
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo watch <package_name>"
+    print "'yo help' to see all available subcommands"
 }
 
 yo_help_run() {
-  print
-  print "Usage: yo run <script_name>"
-  print "Usage: yo run <script_name> <argument(s)>"
-  print "'yo help' to see all available subcommands"
+    print
+    print "Usage: yo run <script_name>"
+    print "Usage: yo run <script_name> <argument(s)>"
+    print "'yo help' to see all available subcommands"
 }
+
 # --------------------------------------------------------- #
 
 yo() {
-  _cmd=$1
-  _path=$2
+    local _cmd=$1
+    local _path=$2
 
-  if [ -z "$1" ]; then
-    yo_help
-  else
-    case $_cmd in
-    init)
-      yo_init
-      ;;
-    set)
-      yo_set "$2" "$3"
-      ;;
-    get)
-      yo_get "$_path"
-      ;;
-    test)
-      yo_test "$_path" "$3"
-      ;;
-    watch)
-      yo_watch "$_path"
-      ;;
-    run)
-      # Pass arguments starting from second
-      yo_run "${@:2}"
-      ;;
-    mock)
-      yo_mock
-      ;;
-    path)
-      yo_path
-      ;;
-    help)
-      yo_help
-      ;;
-    *)
-      printError "Unknown subcommand"
-      yo_help
-      ;;
-    esac
+    if [[ "$_cmd" != "init" ]]; then
+        yo_verify_project_initialization
+        if ! ${projectInitialized}; then
+            return
+        fi
+    fi
 
-  fi
+    if [[ -z "$1" ]]; then
+        yo_help
+    else
+        case ${_cmd} in
+            init)
+                yo_init
+            ;;
+            set)
+                yo_set "$2" "$3"
+            ;;
+            get)
+                yo_get "$_path"
+            ;;
+            test)
+                yo_test "$_path" "$3"
+            ;;
+            watch)
+                yo_watch "$_path"
+            ;;
+            run)
+            # Pass arguments starting from second
+                yo_run "${@:2}"
+            ;;
+            mock)
+                yo_mock
+            ;;
+            path)
+                yo_path
+            ;;
+            help)
+                yo_help
+            ;;
+            *)
+                printError "Unknown subcommand"
+                yo_help
+            ;;
+        esac
+    fi
 }
 
 # ***** Helper functions ****** #
 
+# unset global variables
+clean() {
+    unset currentProjectRoot
+    unset currentProjectDirectoryName
+    unset projectInitialized
+}
+
 # Save the current project root in currentProjectRoot variable and current project folder name in currentProjectDirectoryName variable
 yo_get_project_info() {
-  _currentPath=$(pwd)
-  _currentPathName=${_currentPath////_}
+    clean
+    local currentPath=$(pwd)
+    local currentPathName=${currentPath////_}
 
-  shopt -s nullglob
+    shopt -s nullglob
 
-  cd "$HOME/.yo/" || return
+    cd "$HOME/.yo/" || return
 
-  _directories=(*)
-  for _dir in "${_directories[@]}"; do
-    if [[ $_currentPathName == *"$_dir"* ]]; then
-      cd "$_currentPath" || return
+    _directories=( * )
+    for _dir in "${_directories[@]}"; do
+        if [[ ${currentPathName} == *"$_dir"* ]]; then
+            cd "$currentPath" || return
 
-      currentProjectDirectoryName="$_dir"
-      currentProjectRoot=$(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
-      return
-    fi
-  done
-  cd "$_currentPath" || return
+            currentProjectDirectoryName="$_dir"
+            currentProjectRoot=$(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+            return
+        fi
+    done
+    cd "$currentPath" || return
 }
 
 # Verify if project has been initialized
 yo_verify_project_initialization() {
-  yo_get_project_info
-
-  if [ -z "$currentProjectRoot" ]; then
-    unset currentProjectRoot
-    printError "Project has not yet been initialized"
-    yo_help_init
-    projectInitialized=0
-  else
-    projectInitialized=1
-  fi
+    yo_get_project_info
+    if [[ -z "$currentProjectRoot" ]]; then
+        printError "Project has not yet been initialized"
+        yo_help_init
+        projectInitialized=false
+    else
+        projectInitialized=true
+    fi
 }
 
 yo_flutter_command() {
-  cd "$1" || return
-  _pubspec_file=pubspec.yaml
-  if [ -f "$_pubspec_file" ]; then
-    eval "$2"
-  else
-    printError "Please pass the correct package name"
-  fi
+    local _goBack=false
+    local _verbose=false
 
-  if $3; then # to go back or not
-    cd ..
-  fi
+    case $3 in
+        -verbose)
+            _verbose=true
+        ;;
+        -back)
+            _goBack=true
+        ;;
+    esac
+
+    case $4 in
+        -verbose)
+            _verbose=true
+        ;;
+        -back)
+            _goBack=true
+        ;;
+    esac
+
+    cd "$1" || return
+    local _pubspec_file=pubspec.yaml
+    if [[ -f "$_pubspec_file" ]]; then
+        eval "$2"
+    else
+        if ${_verbose}; then
+            printError "Please pass the correct package name"
+        fi
+    fi
+
+    if ${_goBack}; then
+        # to go back up a directory or not
+        cd ..
+    fi
 }
 
 # Color codes
@@ -569,17 +550,17 @@ _YELLOW='\033[1;33m'
 _NO_COLOR='\033[0m'
 
 printError() {
-  echo -e "${_ERROR}*** $1 ***${_NO_COLOR}"
+    echo -e "${_ERROR}*** $1 ***${_NO_COLOR}"
 }
 
 printSuccess() {
-  echo -e "${_SUCCESS}*** $1 ***${_NO_COLOR}"
+    echo -e "${_SUCCESS}*** $1 ***${_NO_COLOR}"
 }
 
 printInfo() {
-  echo -e "${_YELLOW}*** $1 ***${_NO_COLOR}"
+    echo -e "${_YELLOW}*** $1 ***${_NO_COLOR}"
 }
 
 print() {
-  echo -e "${_NO_COLOR}$1"
+    echo -e "${_NO_COLOR}$1"
 }
