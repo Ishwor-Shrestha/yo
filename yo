@@ -194,6 +194,7 @@ yo_test() {
     cd "$_currentDirectory" || return
 }
 
+# Run `flutter test --coverage` on specified package.
 yo_test_coverage() {
     yo_flutter_command "$1" "flutter test --coverage" -verbose -back
     local _lcovLocation=$1/coverage/lcov.info
@@ -217,7 +218,7 @@ yo_test_coverage() {
     fi
 }
 
-# Run `flutter build_runner` on specified package
+# Run `flutter build_runner watch` on specified package
 # Print error if no package name is passed
 yo_watch() {
     local _currentDirectory=$(pwd)
@@ -262,6 +263,8 @@ yo_watch() {
     cd "$_currentDirectory" || return
 }
 
+# Run `flutter build_runner build` on specified package
+# Print error if no package name is passed
 yo_build() {
     local _currentDirectory=$(pwd)
 
@@ -300,6 +303,50 @@ yo_build() {
     else
         printError "Please provide the package name"
         yo_help_build
+    fi
+
+    cd "$_currentDirectory" || return
+}
+
+# Run `flutter pub upgrade` on specified package. If no package is specified, `flutter pub upgrade` will be run on all packages
+yo_upgrade() {
+    local _currentDirectory=$(pwd)
+
+    shopt -s nullglob
+
+    local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+
+    # Print error if package path has not been set
+    if [[ -z "$_currentProjectPackagePath" ]]; then
+        printError "Please add package path first"
+        yo_help_package
+        return
+    fi
+
+    cd "$_currentProjectPackagePath" || return
+
+    if [[ -n "$1" ]]; then
+        case $1 in
+            /c)
+                yo_flutter_command "$_currentDirectory" "flutter pub upgrade" -verbose # if /c is passed in package name, 'flutter pub get' will be run in current directory
+            ;;
+            /r)
+                yo_flutter_command "$_currentProjectPackagePath" "flutter pub upgrade" -verbose # if /r is passed in package name, 'flutter pub get' will be run in package directory
+            ;;
+            *)
+                if [[ -d "$1" ]]; then
+                    yo_flutter_command "$1" "flutter pub upgrade" -verbose -back
+                else
+                    printError "Package '$1' does not exist"
+                fi
+            ;;
+        esac
+    else
+        yo_flutter_command "$_currentProjectPackagePath" "flutter pub upgrade" # Run 'flutter pub get' in package directory too
+        _directories=( */ )
+        for _d in "${_directories[@]}"; do
+            yo_flutter_command "$_d" "flutter pub upgrade" -back
+        done
     fi
 
     cd "$_currentDirectory" || return
@@ -361,6 +408,7 @@ yo_path() {
 }
 
 # ------------------------- Helps ------------------------- #
+
 yo_help() {
     print "Available YO subcommands"
     print
@@ -483,6 +531,9 @@ yo() {
             ;;
             build)
                 yo_build "$_path"
+            ;;
+            upgrade)
+                yo_upgrade "$_path"
             ;;
             run)
             # Pass arguments starting from second
