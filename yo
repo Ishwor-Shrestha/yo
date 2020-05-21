@@ -203,7 +203,7 @@ yo_test_coverage() {
 
             genhtml coverage/lcov.info -o coverage/html
 
-            _htmlLocation="coverage/html/index.html"
+            local _htmlLocation="coverage/html/index.html"
             if [[ "$(command -v open-xdg)" ]]; then
                 open-xdg ${_htmlLocation}
             elif [[ "$(command -v start)" ]]; then
@@ -220,16 +220,16 @@ yo_test_coverage() {
 # Run `flutter build_runner` on specified package
 # Print error if no package name is passed
 yo_watch() {
-    _currentDirectory=$(pwd)
+    local _currentDirectory=$(pwd)
 
     shopt -s nullglob
 
-    _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+    local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
     unset currentProjectDirectoryName
     unset currentProjectRoot
 
     # Print error if package path has not been set
-    if [ -z "$_currentProjectPackagePath" ]; then
+    if [[ -z "$_currentProjectPackagePath" ]]; then
         printError "Please add package path"
         yo_help_package
         return
@@ -237,17 +237,17 @@ yo_watch() {
 
     cd "$_currentProjectPackagePath" || return
 
-    if [ -n "$1" ]; then
+    if [[ -n "$1" ]]; then
         case $1 in
             /r)
-                yo_flutter_command "$_currentProjectPackagePath" "flutter pub run build_runner watch --delete-conflicting-outputs" false # if /c is passed as package name, build_runner will be run in package directory
+                yo_flutter_command "$_currentProjectPackagePath" "flutter pub run build_runner watch --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in package directory
             ;;
             /c)
-                yo_flutter_command "$_currentDirectory" "flutter pub run build_runner watch --delete-conflicting-outputs" false # if /c is passed as package name, build_runner will be run in current directory
+                yo_flutter_command "$_currentDirectory" "flutter pub run build_runner watch --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in current directory
             ;;
             *)
-                if [ -d "$1" ]; then
-                    yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs" true
+                if [[ -d "$1" ]]; then
+                    yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs" -verbose -back
                 else
                     printError "Package '$1' does not exist"
                 fi
@@ -257,6 +257,49 @@ yo_watch() {
     else
         printError "Please provide the package name"
         yo_help_watch
+    fi
+
+    cd "$_currentDirectory" || return
+}
+
+yo_build() {
+    local _currentDirectory=$(pwd)
+
+    shopt -s nullglob
+
+    local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+    unset currentProjectDirectoryName
+    unset currentProjectRoot
+
+    # Print error if package path has not been set
+    if [[ -z "$_currentProjectPackagePath" ]]; then
+        printError "Please add package path"
+        yo_help_package
+        return
+    fi
+
+    cd "$_currentProjectPackagePath" || return
+
+    if [[ -n "$1" ]]; then
+        case $1 in
+            /r)
+                yo_flutter_command "$_currentProjectPackagePath" "flutter pub run build_runner build --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in package directory
+            ;;
+            /c)
+                yo_flutter_command "$_currentDirectory" "flutter pub run build_runner build --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in current directory
+            ;;
+            *)
+                if [[ -d "$1" ]]; then
+                    yo_flutter_command "$1" "flutter pub run build_runner build --delete-conflicting-outputs" -verbose -back
+                else
+                    printError "Package '$1' does not exist"
+                fi
+            ;;
+        esac
+
+    else
+        printError "Please provide the package name"
+        yo_help_build
     fi
 
     cd "$_currentDirectory" || return
@@ -336,7 +379,8 @@ yo_help() {
     print "get <package_name>                      Run 'flutter pub get' in the provided package"
     print "test <package_name>                     Run 'flutter test' in the provided package"
     print "test <package_name> --coverage          Run 'flutter test --coverage' in the provided package"
-    print "watch <package_name>                    Run the 'build_runner' in the provided package"
+    print "watch <package_name>                    Run the 'build_runner watch' in the provided package"
+    print "build <package_name>                    Run the 'build_runner build' in the provided package"
     print "run <script_name>                       Run the provided script"
     print "run <script_name> <argument(s)>         Run the provided script with the provided argument(s)"
     print "mock                                    Start mockoon"
@@ -400,6 +444,12 @@ yo_help_watch() {
     print "'yo help' to see all available subcommands"
 }
 
+yo_help_build() {
+    print
+    print "Usage: yo build <package_name>"
+    print "'yo help' to see all available subcommands"
+}
+
 yo_help_run() {
     print
     print "Usage: yo run <script_name>"
@@ -438,6 +488,9 @@ yo() {
             ;;
             watch)
                 yo_watch "$_path"
+            ;;
+            build)
+                yo_build "$_path"
             ;;
             run)
             # Pass arguments starting from second
