@@ -431,7 +431,7 @@ yo_outdated() {
 
     else
         printError "Please provide the package name"
-        yo_help_watch
+        yo_help_outdated
     fi
 
     cd "$_currentDirectory" || return
@@ -490,6 +490,52 @@ yo_path() {
     print "Project root : $(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
     print "Package path : $(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
     print "Script path : $(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+}
+
+# Starts adb server
+yo_start_server() {
+    if [[ "$(command -v adb)" ]]; then
+        adb start-server
+    else
+        printError "Please install adb to run command"
+    fi
+}
+
+# Kills adb server
+yo_kill_server() {
+    if [[ "$(command -v adb)" ]]; then
+        adb kill-server
+    else
+        printError "Please install adb to run command"
+    fi
+}
+
+# Restarts adb server
+yo_restart_server() {
+    if [[ "$(command -v adb)" ]]; then
+        adb kill-server
+        adb start-server
+    else
+        printError "Please install adb to run command"
+    fi
+}
+
+# Starts adb server
+yo_tcpip() {
+    if [[ "$(command -v adb)" ]]; then
+        adb tcpip 5555
+    else
+        printError "Please install adb to run command"
+    fi
+}
+
+# Connects to device for wifi debugging
+yo_connect() {
+    if [[ "$(command -v adb)" ]]; then
+        adb connect $1
+    else
+        printError "Please install adb to run command"
+    fi
 }
 
 # ------------------------- Helps ------------------------- #
@@ -575,6 +621,12 @@ yo_help_build() {
     print "'yo help' to see all available subcommands"
 }
 
+yo_help_outdated() {
+    print
+    print "Usage: yo outdated <package_name>"
+    print "'yo help' to see all available subcommands"
+}
+
 yo_help_run() {
     print
     print "Usage: yo run <script_name>"
@@ -588,7 +640,7 @@ yo() {
     local _cmd=$1
     local _path=$2
 
-    if [[ "$_cmd" != "init" ]]; then
+    if [[ "$_cmd" != "init" ]] && [[ "$_cmd" != "start-server" ]] && [[ "$_cmd" != "kill-server" ]] && [[ "$_cmd" != "restart-server" ]] && [[ "$_cmd" != "tcpip" ]] && [[ "$_cmd" != "connect" ]]; then
         yo_verify_project_initialization
         if ! ${projectInitialized}; then
             return
@@ -634,6 +686,21 @@ yo() {
                 yo_mock
             ;;
             path)
+                yo_path
+            ;;
+            start-server)
+                yo_path
+            ;;
+            kill-server)
+                yo_path
+            ;;
+            restart-server)
+                yo_path
+            ;;
+            tcpip)
+                yo_path
+            ;;
+            connect)
                 yo_path
             ;;
             help)
