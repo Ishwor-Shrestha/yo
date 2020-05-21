@@ -15,7 +15,7 @@ curl -o ~/Downloads/yo https://raw.githubusercontent.com/Ishwor-Shrestha/yo/mast
 ```
 Make sure you replace `~/Downloads/` with your directory.
 
-#### 2. Append the following line at the end in your `.bashrc`
+#### 2. Append the following line at the end in your `.bashrc` or whatever is equivalent to `.bashrc`
 ```shell script
 source ~/Downloads/yo  
 ```
@@ -80,7 +80,7 @@ Run the tests in a specific package.
 yo test <package_directory_name>
 ```
 
-Run tests in the current directory.
+Run tests in the current package.
 ```shell script
 yo test /c
 ```
@@ -96,7 +96,7 @@ Run the tests coverage in a specific package.
 yo test <package_directory_name> --coverage
 ```
 
-Run tests coverage in the current directory.
+Run tests coverage in the current package.
 ```shell script
 yo test /c --coverage
 ```
@@ -106,7 +106,49 @@ Run tests coverage in the root of the package directory.
 yo test /r --coverage
 ```
 
-#### Run your `build_runner` and start watching
+#### Clean your flutter packages `flutter clean`
+Clean all your packages.
+```shell script
+yo clean
+```
+
+Clean a specific package.
+```shell script
+yo clean <package_directory_name>
+```
+
+Clean the current package.
+```shell script
+yo clean /c
+```
+
+Clean the root of the package directory.
+```shell script
+yo clean /r
+```
+
+#### Upgrade your flutter packages `flutter pub upgrade`
+Upgrade all your packages.
+```shell script
+yo upgrade
+```
+
+Upgrade a specific package.
+```shell script
+yo upgrade <package_directory_name>
+```
+
+Upgrade the current package.
+```shell script
+yo upgrade /c
+```
+
+Upgrade the root of the package directory.
+```shell script
+yo upgrade /r
+```
+
+#### Run `build_runner watch` to build and start watching
 - Learn about [build_runner](https://pub.dev/packages/build_runner).
 
 Use this command to run the `build_runner`.
@@ -123,6 +165,72 @@ yo watch /c
 Run `build_runner` in the root of the package directory.
 ```shell script
 yo watch /r
+```
+
+#### Run `build_runner build` to build
+- Learn about [build_runner](https://pub.dev/packages/build_runner).
+
+Use this command to run the `build_runner`.
+
+```shell script
+yo build <package_directory_name>
+```
+
+Run `build_runner` in the current directory.
+```shell script
+yo build /c
+```
+
+Run `build_runner` in the root of the package directory.
+```shell script
+yo build /r
+```
+
+#### Check if your flutter packages have outdated dependencies `flutter pub outdated`
+Check in all your packages.
+```shell script
+yo outdated
+```
+
+Check in a specific package.
+```shell script
+yo outdated <package_directory_name>
+```
+
+Check in the current package.
+```shell script
+yo outdated /c
+```
+
+Check in the root of the package directory.
+```shell script
+yo outdated /r
+```
+
+#### Yo also supports adb commands
+To start the adb server
+```shell script
+yo start-server
+```
+
+To kill the adb server
+```shell script
+yo kill-server
+```
+
+To restart the adb server
+```shell script
+yo restart-server
+```
+
+To start the adb server listening on TCP on PORT 5555
+```shell script
+yo tcpip
+```
+
+To connect to the device with IP
+```shell script
+yo connect <ip_address>
 ```
 
 #### Start Mockoon
