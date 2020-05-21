@@ -309,16 +309,14 @@ yo_build() {
 # Print error if no script name is passed
 # Pass all passed arguments to script
 yo_run() {
-    _currentDirectory=$(pwd)
+    local _currentDirectory=$(pwd)
 
     shopt -s nullglob
 
-    _currentProjectScriptPath=$(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
-    unset currentProjectDirectoryName
-    unset currentProjectRoot
+    local _currentProjectScriptPath=$(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
     # Print error if package path has not been set
-    if [ -z "$_currentProjectScriptPath" ]; then
+    if [[ -z "$_currentProjectScriptPath" ]]; then
         printError "Please add script path"
         yo_help_script
         return
@@ -326,9 +324,9 @@ yo_run() {
 
     cd "$_currentProjectScriptPath" || return
 
-    if [ -n "$1" ]; then
-        if [ -e "$1" ]; then
-            if [ -x "$1" ]; then
+    if [[ -n "$1" ]]; then
+        if [[ -e "$1" ]]; then
+            if [[ -x "$1" ]]; then
                 # Pass arguments starting from second
                 eval "./$1" "${@:2}"
             else
@@ -347,7 +345,7 @@ yo_run() {
 
 # Run the mockoon if installed
 yo_mock() {
-    if [ "$(command -v mockoon)" ]; then
+    if [[ "$(command -v mockoon)" ]]; then
         mockoon
     else
         printError "Please install mockoon"
@@ -355,17 +353,11 @@ yo_mock() {
     fi
 }
 
+# Print the path info
 yo_path() {
-    _currentDirectory=$(pwd)
-
-    shopt -s nullglob
-
     print "Project root : $(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
     print "Package path : $(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
     print "Script path : $(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
-
-    unset currentProjectDirectoryName
-    unset currentProjectRoot
 }
 
 # ------------------------- Helps ------------------------- #
@@ -516,7 +508,7 @@ yo() {
 # ***** Helper functions ****** #
 
 # unset global variables
-clean() {
+clean_variables() {
     unset currentProjectRoot
     unset currentProjectDirectoryName
     unset projectInitialized
@@ -524,7 +516,7 @@ clean() {
 
 # Save the current project root in currentProjectRoot variable and current project folder name in currentProjectDirectoryName variable
 yo_get_project_info() {
-    clean
+    clean_variables
     local currentPath=$(pwd)
     local currentPathName=${currentPath////_}
 
