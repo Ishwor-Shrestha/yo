@@ -532,6 +532,10 @@ yo_tcpip() {
 # Connects to device for wifi debugging
 yo_connect() {
     if [[ "$(command -v adb)" ]]; then
+        if [[ -z $1 ]]; then
+            printError "Please pass the ip address of the device you want to connect to"
+            yo_help_connect
+        fi
         adb connect $1
     else
         printError "Please install adb to run command"
@@ -547,15 +551,25 @@ yo_help() {
     print "set <option> <path>                     Add path (relative to the root of the project) to script/package directory"
     print "get                                     Run 'flutter pub get' in all the packages"
     print "test                                    Run 'flutter test' in all the packages"
+    print "clean                                   Run 'flutter clean' in all the packages"
+    print "upgrade                                 Run 'flutter pub upgrade' in all the packages"
     print "get <package_name>                      Run 'flutter pub get' in the provided package"
     print "test <package_name>                     Run 'flutter test' in the provided package"
     print "test <package_name> --coverage          Run 'flutter test --coverage' in the provided package"
+    print "clean <package_name>                    Run 'flutter clean' in the provided package"
+    print "upgrade <package_name>                  Run 'flutter upgrade' in the provided package"
     print "watch <package_name>                    Run the 'build_runner watch' in the provided package"
     print "build <package_name>                    Run the 'build_runner build' in the provided package"
+    print "outdated <package_name>                 Run the 'flutter pub outdated' in the provided package"
     print "run <script_name>                       Run the provided script"
     print "run <script_name> <argument(s)>         Run the provided script with the provided argument(s)"
     print "mock                                    Start mockoon"
     print "path                                    Get set paths"
+    print "start-server                            Start the adb server"
+    print "kill-server                             Kill the adb server"
+    print "restart-server                          Restart the adb server"
+    print "tcpip                                   Restart the adb server listening on TCP on PORT 5555"
+    print "connect <ip_address>                    Connect to the device with the provided ip "
     print "help                                    Get info about YO's subcommands"
     print
     print "set options"
@@ -634,13 +648,19 @@ yo_help_run() {
     print "'yo help' to see all available subcommands"
 }
 
+yo_help_connect() {
+    print
+    print "Usage: yo connect <ip_address>"
+    print "'yo help' to see all available subcommands"
+}
+
 # --------------------------------------------------------- #
 
 yo() {
     local _cmd=$1
     local _path=$2
 
-    if [[ "$_cmd" != "init" ]] && [[ "$_cmd" != "start-server" ]] && [[ "$_cmd" != "kill-server" ]] && [[ "$_cmd" != "restart-server" ]] && [[ "$_cmd" != "tcpip" ]] && [[ "$_cmd" != "connect" ]]; then
+    if [[ "$_cmd" != "init" ]] && [[ "$_cmd" != "start-server" ]] && [[ "$_cmd" != "kill-server" ]] && [[ "$_cmd" != "restart-server" ]] && [[ "$_cmd" != "tcpip" ]] && [[ "$_cmd" != "connect" ]] && [[ "$_cmd" != "mock" ]]; then
         yo_verify_project_initialization
         if ! ${projectInitialized}; then
             return
@@ -689,19 +709,19 @@ yo() {
                 yo_path
             ;;
             start-server)
-                yo_path
+                yo_start_server
             ;;
             kill-server)
-                yo_path
+                yo_kill_server
             ;;
             restart-server)
-                yo_path
+                yo_restart_server
             ;;
             tcpip)
-                yo_path
+                yo_tcpip
             ;;
             connect)
-                yo_path
+                yo_connect "$_path"
             ;;
             help)
                 yo_help
