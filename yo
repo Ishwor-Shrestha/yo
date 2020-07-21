@@ -57,34 +57,16 @@ yo_set() {
 # Path should be relative to project root
 # Set current directory as path if /c is passed
 yo_script() {
-  if [[ -n "$1" ]]; then
-    if [[ "$1" == "/c" ]]; then
-      _scriptPath=$(pwd)/
-    else
-      _scriptPath=$(pwd)/$1
-    fi
-    sed -i 's|script_path=.*|script_path='"$_scriptPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
-  else
-    printError "Please provide the path"
-    yo_help_script
-  fi
+  _scriptPath=$(pwd)/$1
+  sed -i 's|script_path=.*|script_path='"$_scriptPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
 }
 
 # To set the path to flutter package(s)
 # Path should be relative to project root
 # Set current directory as path if /c is passed
 yo_package() {
-  if [[ -n "$1" ]]; then
-    if [[ "$1" == "/c" ]]; then
-      _packagePath=$(pwd)/
-    else
-      _packagePath=$(pwd)/$1
-    fi
-    sed -i 's|package_path=.*|package_path='"$_packagePath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
-  else
-    printError "Please provide the path"
-    yo_help_package
-  fi
+  _packagePath=$(pwd)/$1
+  sed -i 's|package_path=.*|package_path='"$_packagePath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
 }
 
 # Run `flutter pub get` on specified package. If no package is specified, `flutter pub get` will be run on all packages
