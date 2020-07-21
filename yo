@@ -93,7 +93,7 @@ yo_get() {
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -137,7 +137,7 @@ yo_test() {
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package _path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -224,7 +224,7 @@ yo_watch() {
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -267,7 +267,7 @@ yo_build() {
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
   unset currentProjectDirectoryName
   unset currentProjectRoot
 
@@ -311,7 +311,7 @@ yo_upgrade() {
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -355,7 +355,7 @@ yo_clean() {
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -400,7 +400,7 @@ yo_outdated() {
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -444,7 +444,7 @@ yo_run() {
 
   shopt -s nullglob
 
-  local _currentProjectScriptPath=$(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectScriptPath=$(LC_ALL=C.UTF-8 grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectScriptPath" ]]; then
@@ -486,9 +486,9 @@ yo_mock() {
 
 # Print the path info
 yo_path() {
-  print "Project root : $(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
-  print "Package path : $(grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
-  print "Script path : $(grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+  print "Project root : $(LC_ALL=C.UTF-8 grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+  print "Package path : $(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
+  print "Script path : $(LC_ALL=C.UTF-8 grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)"
 }
 
 # Starts adb server
@@ -659,12 +659,16 @@ yo() {
   local _cmd=$1
   local _path=$2
 
-  declare -A commandMap=(["set"]="1" ["get"]="1" ["test"]="1" ["clean"]="1" ["upgrade"]="1" ["watch"]="1" ["build"]="1" ["outdated"]="1" ["run"]="1" ["path"]="1")
+  unset commandMap
+  declare -A commandMap=(["set"]="1" ["get"]="1" ["test"]="1" ["clean"]="1" ["upgrade"]="1" ["watch"]="1" ["build"]="1" ["outdated"]="1"
+    ["run"]="1" ["path"]="1")
 
-  if [[ -n ${commandMap[$_cmd]} ]]; then
-    yo_verify_project_initialization
-    if ! ${projectInitialized}; then
-      return
+  if [[ -n "$_cmd" ]]; then
+    if [[ -n "${commandMap[$_cmd]}" ]]; then
+      yo_verify_project_initialization
+      if ! ${projectInitialized}; then
+        return
+      fi
     fi
   fi
 
@@ -747,7 +751,9 @@ clean_variables() {
 # Save the current project root in currentProjectRoot variable and current project folder name in currentProjectDirectoryName variable
 yo_get_project_info() {
   clean_variables
-  local currentPath=$(pwd)
+  local currentPath
+  currentPath=$(pwd)
+
   local currentPathName=${currentPath////_}
 
   shopt -s nullglob
@@ -755,12 +761,12 @@ yo_get_project_info() {
   cd "$HOME/.yo/" || return
 
   _directories=(*)
-  for _dir in "${_directories[@]}"; do
+  for _dir in ${_directories[*]}; do
     if [[ ${currentPathName} == *"$_dir"* ]]; then
       cd "$currentPath" || return
 
       currentProjectDirectoryName="$_dir"
-      currentProjectRoot=$(grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+      currentProjectRoot=$(LC_ALL=C.UTF-8 grep -oP "(project_root=\K.*)" "$HOME/.yo/$currentProjectDirectoryName/config")
       return
     fi
   done
