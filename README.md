@@ -59,16 +59,6 @@ There may be a case when you have a simple project with the package content at t
 yo get
 ```
 
-Use this to get dependencies at the current directory.
-```shell script
-yo get /c
-```
-
-Or this when you're deep inside your project and don't want the hassle to navigate all the way to the top. This will run `yo get` at the root of the package directory.
-```shell script
-yo get /r
-```
-
 #### Run your tests `flutter test`
 Run the tests in all your packages.
 ```shell script
@@ -80,30 +70,10 @@ Run the tests in a specific package.
 yo test <package_directory_name>
 ```
 
-Run tests in the current package.
-```shell script
-yo test /c
-```
-
-Run tests in the root of the package directory.
-```shell script
-yo test /r
-```
-
 #### Run your tests coverage `flutter test --coverage`
 Run the tests coverage in a specific package.
 ```shell script
 yo test <package_directory_name> --coverage
-```
-
-Run tests coverage in the current package.
-```shell script
-yo test /c --coverage
-```
-
-Run tests coverage in the root of the package directory.
-```shell script
-yo test /r --coverage
 ```
 
 #### Clean your flutter packages `flutter clean`
@@ -117,16 +87,6 @@ Clean a specific package.
 yo clean <package_directory_name>
 ```
 
-Clean the current package.
-```shell script
-yo clean /c
-```
-
-Clean the root of the package directory.
-```shell script
-yo clean /r
-```
-
 #### Upgrade your flutter packages `flutter pub upgrade`
 Upgrade all your packages.
 ```shell script
@@ -138,16 +98,6 @@ Upgrade a specific package.
 yo upgrade <package_directory_name>
 ```
 
-Upgrade the current package.
-```shell script
-yo upgrade /c
-```
-
-Upgrade the root of the package directory.
-```shell script
-yo upgrade /r
-```
-
 #### Run `build_runner watch` to build and start watching
 - Learn about [build_runner](https://pub.dev/packages/build_runner).
 
@@ -157,16 +107,6 @@ Use this command to run the `build_runner`.
 yo watch <package_directory_name>
 ```
 
-Run `build_runner` in the current directory.
-```shell script
-yo watch /c
-```
-
-Run `build_runner` in the root of the package directory.
-```shell script
-yo watch /r
-```
-
 #### Run `build_runner build` to build
 - Learn about [build_runner](https://pub.dev/packages/build_runner).
 
@@ -174,16 +114,6 @@ Use this command to run the `build_runner`.
 
 ```shell script
 yo build <package_directory_name>
-```
-
-Run `build_runner` in the current directory.
-```shell script
-yo build /c
-```
-
-Run `build_runner` in the root of the package directory.
-```shell script
-yo build /r
 ```
 
 #### Check if your flutter packages have outdated dependencies `flutter pub outdated`
@@ -197,17 +127,7 @@ Check in a specific package.
 yo outdated <package_directory_name>
 ```
 
-Check in the current package.
-```shell script
-yo outdated /c
-```
-
-Check in the root of the package directory.
-```shell script
-yo outdated /r
-```
-
-#### Yo also supports adb commands
+### Yo also supports adb commands
 To start the adb server
 ```shell script
 yo start-server

@@ -79,7 +79,8 @@ yo_package() {
   cd "$_oldPath" || return
 }
 
-# Run `flutter pub get` on specified package. If no package is specified, `flutter pub get` will be run on all packages
+# Run `flutter pub get` on specified package.
+# If no package is specified, `flutter pub get` will be run on all packages
 yo_get() {
   local _currentDirectory
   _currentDirectory=$(pwd)
@@ -115,13 +116,16 @@ yo_get() {
   cd "$_currentDirectory" || return
 }
 
-# Run `flutter test` on specified package. If no package is specified, `flutter test` will be run on all packages
+# Run `flutter test` on specified package.
+# If no package is specified, `flutter test` will be run on all packages
 yo_test() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath
+  _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package _path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -134,28 +138,13 @@ yo_test() {
 
   local _command
   if [[ -n "$1" ]]; then
-    case $1 in
-    /c)
-      # if /c is passed as package name, 'flutter test' will be run in current directory
-      _command="yo_flutter_command $_currentDirectory flutter test -verbose"
-      ;;
-    /r)
-      # if /r is passed as package name, 'flutter test' will be run in package directory
-      _command="yo_flutter_command $_currentProjectPackagePath flutter test -verbose"
-      ;;
-    *)
-      if [[ -d "$1" ]]; then
-        _testDir="$1"
-        _shouldGoBack=true
-        _verbose=true
-
-        _command="yo_flutter_command $1 flutter test -verbose -back"
-      else
-        printError "Package '$1' does not exist"
-        return
-      fi
-      ;;
-    esac
+    if [[ -d "$1" ]]; then
+      _testDir="$1"
+      _command="yo_flutter_command $1 flutter test -verbose -back"
+    else
+      printError "Package '$1' does not exist"
+      return
+    fi
     if [[ -z "$2" ]]; then
       eval "${_command}"
     else
@@ -204,11 +193,13 @@ yo_test_coverage() {
 # Run `flutter build_runner watch` on specified package
 # Print error if no package name is passed
 yo_watch() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath
+  _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -220,21 +211,11 @@ yo_watch() {
   cd "$_currentProjectPackagePath" || return
 
   if [[ -n "$1" ]]; then
-    case $1 in
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter pub run build_runner watch --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in package directory
-      ;;
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter pub run build_runner watch --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in current directory
-      ;;
-    *)
-      if [[ -d "$1" ]]; then
-        yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs" -verbose -back
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
+    if [[ -d "$1" ]]; then
+      yo_flutter_command "$1" "flutter pub run build_runner watch --delete-conflicting-outputs" -verbose -back
+    else
+      printError "Package '$1' does not exist"
+    fi
 
   else
     printError "Please provide the package name"
@@ -247,11 +228,13 @@ yo_watch() {
 # Run `flutter build_runner build` on specified package
 # Print error if no package name is passed
 yo_build() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath
+  _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
   unset currentProjectDirectoryName
   unset currentProjectRoot
 
@@ -265,21 +248,11 @@ yo_build() {
   cd "$_currentProjectPackagePath" || return
 
   if [[ -n "$1" ]]; then
-    case $1 in
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter pub run build_runner build --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in package directory
-      ;;
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter pub run build_runner build --delete-conflicting-outputs" -verbose # if /c is passed as package name, build_runner will be run in current directory
-      ;;
-    *)
-      if [[ -d "$1" ]]; then
-        yo_flutter_command "$1" "flutter pub run build_runner build --delete-conflicting-outputs" -verbose -back
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
+    if [[ -d "$1" ]]; then
+      yo_flutter_command "$1" "flutter pub run build_runner build --delete-conflicting-outputs" -verbose -back
+    else
+      printError "Package '$1' does not exist"
+    fi
 
   else
     printError "Please provide the package name"
@@ -289,13 +262,16 @@ yo_build() {
   cd "$_currentDirectory" || return
 }
 
-# Run `flutter pub upgrade` on specified package. If no package is specified, `flutter pub upgrade` will be run on all packages
+# Run `flutter pub upgrade` on specified package.
+# If no package is specified, `flutter pub upgrade` will be run on all packages
 yo_upgrade() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath
+  _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -307,21 +283,11 @@ yo_upgrade() {
   cd "$_currentProjectPackagePath" || return
 
   if [[ -n "$1" ]]; then
-    case $1 in
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter pub upgrade" -verbose # if /c is passed in package name, 'flutter pub upgrade' will be run in current directory
-      ;;
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter pub upgrade" -verbose # if /r is passed in package name, 'flutter pub upgrade' will be run in package directory
-      ;;
-    *)
-      if [[ -d "$1" ]]; then
-        yo_flutter_command "$1" "flutter pub upgrade" -verbose -back
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
+    if [[ -d "$1" ]]; then
+      yo_flutter_command "$1" "flutter pub upgrade" -verbose -back
+    else
+      printError "Package '$1' does not exist"
+    fi
   else
     yo_flutter_command "$_currentProjectPackagePath" "flutter pub upgrade" # Run 'flutter pub upgrade' in package directory too
     _directories=(*/)
@@ -333,13 +299,16 @@ yo_upgrade() {
   cd "$_currentDirectory" || return
 }
 
-# Run `flutter clean` on specified package. If no package is specified, `flutter clean` will be run on all packages
+# Run `flutter clean` on specified package.
+# If no package is specified, `flutter clean` will be run on all packages
 yo_clean() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath
+  _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -351,21 +320,11 @@ yo_clean() {
   cd "$_currentProjectPackagePath" || return
 
   if [[ -n "$1" ]]; then
-    case $1 in
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter clean" -verbose # if /c is passed in package name, 'flutter clean' will be run in current directory
-      ;;
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter clean" -verbose # if /r is passed in package name, 'flutter clean' will be run in package directory
-      ;;
-    *)
-      if [[ -d "$1" ]]; then
-        yo_flutter_command "$1" "flutter clean" -verbose -back
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
+    if [[ -d "$1" ]]; then
+      yo_flutter_command "$1" "flutter clean" -verbose -back
+    else
+      printError "Package '$1' does not exist"
+    fi
   else
     yo_flutter_command "$_currentProjectPackagePath" "flutter clean" # Run 'flutter clean' in package directory too
     _directories=(*/)
@@ -380,11 +339,13 @@ yo_clean() {
 # Run `flutter pub outdated` on specified package
 # Print error if no package name is passed
 yo_outdated() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath
+  _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -396,21 +357,11 @@ yo_outdated() {
   cd "$_currentProjectPackagePath" || return
 
   if [[ -n "$1" ]]; then
-    case $1 in
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter pub outdated" -verbose # if /c is passed as package name, `flutter pub outdated` will be run in package directory
-      ;;
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter pub outdated" -verbose # if /c is passed as package name, `flutter pub outdated` will be run in current directory
-      ;;
-    *)
-      if [[ -d "$1" ]]; then
-        yo_flutter_command "$1" "flutter pub outdated" -verbose -back
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
+    if [[ -d "$1" ]]; then
+      yo_flutter_command "$1" "flutter pub outdated" -verbose -back
+    else
+      printError "Package '$1' does not exist"
+    fi
 
   else
     printError "Please provide the package name"
@@ -424,11 +375,13 @@ yo_outdated() {
 # Print error if no script name is passed
 # Pass all passed arguments to script
 yo_run() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectScriptPath=$(LC_ALL=C.UTF-8 grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectScriptPath
+  _currentProjectScriptPath=$(LC_ALL=C.UTF-8 grep -oP "(script_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectScriptPath" ]]; then
@@ -552,17 +505,12 @@ yo_help() {
   print "kill-server                             Kill the adb server"
   print "restart-server                          Restart the adb server"
   print "tcpip                                   Restart the adb server listening on TCP on PORT 5555"
-  print "connect <ip_address>                    Connect to the device with the provided ip "
+  print "connect <ip_address>                    Connect to the device with the provided ip"
   print "help                                    Get info about YO's subcommands"
   print
   print "set options"
   print "-p        Set packages directory"
   print "-s        set scripts directory"
-  print
-  print "Allowed package names"
-  print "/c                      Run the subcommand in the current directory"
-  print "/r                      Run the subcommand in the root of the package directory"
-  print "<directory_name>        Run the subcommand in the passed directory"
 }
 
 yo_help_init() {
