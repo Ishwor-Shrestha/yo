@@ -54,28 +54,40 @@ yo_set() {
 }
 
 # To set the path to bash scripts
-# Path should be relative to project root
-# Set current directory as path if /c is passed
+# Path is relative to current directory
+# Set current directory as path if no path is passed
 yo_script() {
   _scriptPath=$(pwd)/$1
-  sed -i 's|script_path=.*|script_path='"$_scriptPath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+  local _oldPath
+  _oldPath=$(pwd)
+
+  cd "$_scriptPath" || return
+  sed -i 's|script_path=.*|script_path='"$(pwd)/"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+  cd "$_oldPath" || return
 }
 
 # To set the path to flutter package(s)
-# Path should be relative to project root
-# Set current directory as path if /c is passed
+# Path is relative to current directory
+# Set current directory as path if no path is passed
 yo_package() {
   _packagePath=$(pwd)/$1
-  sed -i 's|package_path=.*|package_path='"$_packagePath"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+  local _oldPath
+  _oldPath=$(pwd)
+
+  cd "$_packagePath" || return
+  sed -i 's|package_path=.*|package_path='"$(pwd)/"'|g' "$HOME/.yo/$currentProjectDirectoryName"/config
+  cd "$_oldPath" || return
 }
 
 # Run `flutter pub get` on specified package. If no package is specified, `flutter pub get` will be run on all packages
 yo_get() {
-  local _currentDirectory=$(pwd)
+  local _currentDirectory
+  _currentDirectory=$(pwd)
 
   shopt -s nullglob
 
-  local _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
+  local _currentProjectPackagePath
+  _currentProjectPackagePath=$(LC_ALL=C.UTF-8 grep -oP "(package_path=\K.*)" "$HOME/.yo/$currentProjectDirectoryName"/config)
 
   # Print error if package path has not been set
   if [[ -z "$_currentProjectPackagePath" ]]; then
@@ -87,21 +99,11 @@ yo_get() {
   cd "$_currentProjectPackagePath" || return
 
   if [[ -n "$1" ]]; then
-    case $1 in
-    /c)
-      yo_flutter_command "$_currentDirectory" "flutter pub get" -verbose # if /c is passed in package name, 'flutter pub get' will be run in current directory
-      ;;
-    /r)
-      yo_flutter_command "$_currentProjectPackagePath" "flutter pub get" -verbose # if /r is passed in package name, 'flutter pub get' will be run in package directory
-      ;;
-    *)
-      if [[ -d "$1" ]]; then
-        yo_flutter_command "$1" "flutter pub get" -verbose -back
-      else
-        printError "Package '$1' does not exist"
-      fi
-      ;;
-    esac
+    if [[ -d "$1" ]]; then
+      yo_flutter_command "$1" "flutter pub get" -verbose -back
+    else
+      printError "Package '$1' does not exist"
+    fi
   else
     yo_flutter_command "$_currentProjectPackagePath" "flutter pub get" # Run 'flutter pub get' in package directory too
     _directories=(*/)
