@@ -1,30 +1,22 @@
 #!/usr/bin/env bash
 
 #Global variables
-currentProjectRoot=
-currentProjectDirectoryName=
+# Where project was initialized
+configPath=
+# Flag if project has been initialized
 projectInitialized=
-currentPath=
+# Where yo commands is being triggered from
+workingDirectory=
 
-# Initialize a project if has no been
+# Initialize a project if has not been
+# Sub directories under initialized directory cannot be initialized
 yo_init() {
-  # Create a .yo directory in [Home] directory if does not exist
-  mkdir -p "$HOME/.yo"
-
-  # Directory name for project config
-  local _yoInitPath
-  _yoInitPath=$(pwd)
-  # Replace `/` with `_`
-  local _projectConfigDirectoryName=${_yoInitPath//\//_}
-
-  # Creates a project config directory if does not exist
-  # Sub directories under initialized directory cannot be initialized
   get_project_info
-  if [[ -d "$HOME/.yo/$_projectConfigDirectoryName" ]] || [[ -n "$currentProjectRoot" ]]; then
+  if $projectInitialized; then
     printError "Project already initialized"
   else
-    mkdir "$HOME/.yo/$_projectConfigDirectoryName"
-    echo "project_root=$(pwd)/" >>"$HOME/.yo/$_projectConfigDirectoryName/config"
+    # Create a .yo directory in current directory if it does not exist
+    mkdir -p ".yo"
     printSuccess "Project initialized"
   fi
 }
@@ -43,8 +35,9 @@ yo() {
 
   if [[ -n "$_cmd" ]]; then
     if [[ -n "${commandMap[$_cmd]}" ]]; then
-      verify_initialization
-      if ! ${projectInitialized}; then
+      get_project_info
+      if ! $projectInitialized; then
+        printError "Project has not yet been initialized"
         return
       fi
     fi
@@ -60,56 +53,48 @@ yo() {
     add)
       yo_add "$_path"
       ;;
+    *)
+      printError "Unknown sub-command"
+      ;;
     esac
   fi
 }
 
 # ------------------------------ Helper ------------------------------
 
-# Save the project project root in `currentProjectRoot` variable
-# and current project folder name in `currentProjectDirectoryName` variable
+# Save the project root in `projectRoot` variable
 get_project_info() {
   clean_global_variables
 
-  currentPath=$(pwd)
-  local _currentPathName=${currentPath//\//_}
-
-  cd "$HOME/.yo/" || return
-  # Could not use (*) to list out directories because it did not work in zsh
-  _directories=("$(sh -c 'echo *')")
-  for _dir in "${_directories[@]}"; do
-    if [[ $_currentPathName == *"$_dir"* ]]; then
-      cd "$currentPath" || return
-
-      currentProjectDirectoryName="$_dir"
-      currentProjectRoot=$(grep "project_root" "$HOME/.yo/$currentProjectDirectoryName/config" | cut -d "=" -f 2)
-      return
-    fi
-  done
+  workingDirectory=$(pwd)
+  get_config
   go_back
 }
 
-# Verify if project has been intialized
-verify_initialization() {
-  get_project_info
-  if [[ -z "$currentProjectRoot" ]]; then
-      printError "Project has not yet been initialized"
-      # TODO show init help
-      projectInitialized=false
-    else
-      projectInitialized=true
+# Go back until `.yo` is found and set `projectRoot`
+get_config() {
+  projectInitialized=false
+  if [ -d ".yo" ]; then
+    projectInitialized=true
+    if [ -e ".yo/config" ]; then
+      configPath="$(pwd)/.yo/config"
+    fi
+  else
+    if [ "$(dirname "$(pwd)")" != "/" ]; then
+      cd ..
+      get_config
+    fi
   fi
 }
 
 # Go back to directory where yo command was fired from
 go_back() {
-  cd "$currentPath" || return
+  cd "$workingDirectory" || return
 }
 
 # Unset global variables
 clean_global_variables() {
-  unset currentProjectRoot
-  unset currentProjectDirectoryName
+  unset configPath
   unset projectInitialized
 }
 
@@ -134,3 +119,11 @@ printInfo() {
 print() {
   echo -e "${_NO_COLOR}$1"
 }
+
+# Need this for later
+
+# get value from config
+## projectRoot=$(grep "project_root" "config" | cut -d "=" -f 2)
+
+# set value in config
+## echo "project_root=$(pwd)/" >>".yo/config"
