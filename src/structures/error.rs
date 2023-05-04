@@ -30,7 +30,7 @@ impl std::fmt::Display for Error {
 }
 
 impl Error {
-    pub fn new<T: std::error::Error>(message: String) -> Error {
+    pub fn new(message: String) -> Error {
         Error {
             message,
             code: exitcode::TEMPFAIL,
