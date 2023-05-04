@@ -9,6 +9,7 @@ pub enum ErrorKind {
     Serialize,
     Deserialize,
     FileSystem,
+    Project,
 }
 
 #[derive(Debug, Error)]
