@@ -5,7 +5,7 @@ mod structures;
 mod utils;
 
 use clap::Parser;
-use commands::init;
+use commands::base::init;
 use structures::args::{Command, YoArgs};
 use utils::print::{fprint, MessageType};
 
