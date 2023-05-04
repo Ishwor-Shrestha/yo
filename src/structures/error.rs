@@ -22,11 +22,17 @@ pub struct Error {
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:?} {{\n    {} ({})\n    {}\n}}",
-            self.kind, self.message, self.code, self.origin
-        )
+        let kind = &self.kind;
+        let message = &self.message;
+        let code = &self.code;
+        let mut origin: String = self.origin.clone();
+
+        if origin != "None" {
+            origin = format!("\n    {origin}");
+        } else {
+            origin = String::new();
+        }
+        write!(f, "{kind:?} {{\n    {message} ({code}){origin}\n}}")
     }
 }
 

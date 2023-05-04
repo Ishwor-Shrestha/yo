@@ -5,8 +5,7 @@ use crate::structures::error::*;
 
 pub fn create_dir(path: &String) -> Result<(), Error> {
     if (!does_path_exists(path)) {
-        fs::create_dir(path)
-            .map_err(|e| Error::new(format!("Could not create `{path}`")).source(e))?;
+        fs::create_dir(path).map_err(|e| Error::new(format!("Could not create `{}`")).source(e))?;
     }
 
     Ok(())
