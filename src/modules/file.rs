@@ -1,11 +1,15 @@
+use serde::Serialize;
 use std::fs;
+use std::fs::{File, OpenOptions};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::structures::error::*;
 
 pub fn create_dir(path: &String) -> Result<(), Error> {
     if (!does_path_exists(path)) {
-        fs::create_dir(path).map_err(|e| Error::new(format!("Could not create `{}`")).source(e))?;
+        fs::create_dir(path)
+            .map_err(|e| Error::new(format!("Could not create `{path}`")).source(e))?;
     }
 
     Ok(())
@@ -42,4 +46,51 @@ pub fn get_file_path(directories: Vec<&str>) -> Result<String, Error> {
 // Checks if given path exists or not
 pub fn does_path_exists(path: &String) -> bool {
     Path::new(path).exists()
+}
+
+pub fn write_to_file<T: Serialize>(path: &String, t: &T) -> Result<(), Error> {
+    let contents = serde_json::to_string(t).map_err(|e| {
+        Error::new(format!(
+            "Failed to serialize file in path `{path}` to write to file"
+        ))
+        .code(exitcode::IOERR)
+        .kind(ErrorKind::FileSystem)
+        .source(e)
+    })?;
+
+    write_string_to_file(path, contents)
+}
+
+pub fn write_string_to_file(path: &String, contents: String) -> Result<(), Error> {
+    let mut file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .open(path)
+        .map_err(|e| {
+            Error::new(format!("Failed to open file [{}]", path))
+                .code(exitcode::IOERR)
+                .kind(ErrorKind::FileSystem)
+                .source(e)
+        })?;
+
+    // Remove all contents from the file
+    file.set_len(0);
+
+    file.write_all(contents.as_bytes()).map_err(|e| {
+        Error::new(format!("Failed to write to file [{path}]"))
+            .code(exitcode::IOERR)
+            .kind(ErrorKind::FileSystem)
+            .source(e)
+    })?;
+
+    file.flush().map_err(|e| {
+        Error::new(format!(
+            "Something went wrong when writing to file [{path}]"
+        ))
+        .code(exitcode::IOERR)
+        .kind(ErrorKind::FileSystem)
+        .source(e)
+    })?;
+
+    Ok(())
 }
