@@ -26,3 +26,6 @@ serde = "1.0.158"
 # Error Handling
 thiserror = "1.0.40"
 
+# For user's home directory
+home = "0.5.5"
+
