@@ -1,5 +1,6 @@
 #![allow(unused)]
 mod structures;
+mod utils;
 
 use clap::Parser;
 use structures::args::{Command, YoArgs};
