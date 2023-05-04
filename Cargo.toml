@@ -21,7 +21,7 @@ open = "4.0.1"
 
 # Serialization/Deserialization
 serde_json = "1.0.94"
-serde = "1.0.158"
+serde = {version = "1.0.158", features = ["derive"]}
 
 # Error Handling
 thiserror = "1.0.40"

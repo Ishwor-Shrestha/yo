@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::env;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -41,6 +42,20 @@ pub fn get_file_path(directories: Vec<&str>) -> Result<String, Error> {
     )?;
 
     Ok(resolved_path.to_string())
+}
+
+pub fn get_current_path() -> Result<String, Error> {
+    let current_path = env::current_dir().map_err(|e| {
+        Error::new("Could not fetch current working path".to_string())
+            .kind(ErrorKind::FileSystem)
+            .source(e)
+    })?;
+
+    let current_path = current_path.to_str().ok_or(
+        Error::new("Could not fetch current working path".to_string()).kind(ErrorKind::FileSystem),
+    )?;
+
+    Ok(current_path.to_string())
 }
 
 // Checks if given path exists or not
