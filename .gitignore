@@ -4,4 +4,5 @@
 
 /target
 Cargo.lock
-src/.DS_Store
+.DS_Store
+**/.DS_Store
