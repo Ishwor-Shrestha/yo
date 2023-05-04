@@ -1,7 +1,20 @@
-use clap::Parser;
+use clap::{Args, Parser, Subcommand};
 
-#[derive(Parser)]
-pub struct Args {
-    #[arg(default_value = "")]
-    pub option: String,
+#[derive(Parser, Debug)]
+pub struct YoArgs {
+    #[clap(subcommand)]
+    pub command: Command,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum Command {
+    /// Initialize yo
+    Init(ProjectInfo),
+    Workon(ProjectInfo),
+}
+
+#[derive(Debug, Args)]
+pub struct ProjectInfo {
+    /// Project alias
+    pub alias: String,
 }
