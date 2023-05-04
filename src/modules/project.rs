@@ -8,11 +8,19 @@ pub fn create_yo_dir() -> Result<(), Error> {
     let home_path = get_home_path()?;
     let yo_path = get_file_path(vec![&home_path, ".yo"])?;
 
-    if (!does_path_exists(&yo_path)) {
-        fs::create_dir(yo_path).map_err(|e| {
-            Error::new("Could not create `.yo` in home directory".to_string()).source(e)
-        })?;
-    }
+    create_dir(&yo_path)
+}
 
-    Ok(())
+pub fn create_project_dir(alias: &String) -> Result<(), Error> {
+    let home_path = get_home_path()?;
+    let project_path = get_file_path(vec![&home_path, ".yo", alias])?;
+
+    create_dir(&project_path)
+}
+
+pub fn is_project_initialized(alias: &String) -> Result<bool, Error> {
+    let home_path = get_home_path()?;
+    let project_path = get_file_path(vec![&home_path, ".yo", alias])?;
+
+    Ok(does_path_exists(&project_path))
 }

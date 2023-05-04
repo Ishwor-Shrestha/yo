@@ -3,6 +3,15 @@ use std::path::{Path, PathBuf};
 
 use crate::structures::error::*;
 
+pub fn create_dir(path: &String) -> Result<(), Error> {
+    if (!does_path_exists(path)) {
+        fs::create_dir(path)
+            .map_err(|e| Error::new(format!("Could not create `{path}`")).source(e))?;
+    }
+
+    Ok(())
+}
+
 // Get path of user's home directory
 pub fn get_home_path() -> Result<String, Error> {
     let home_path = home::home_dir()
