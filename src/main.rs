@@ -16,7 +16,7 @@ fn main() {
 
     let result = match args.command {
         Command::Init(x) => init(&(x.alias)),
-        Command::Workon(x) => work_on(),
+        Command::Workon(x) => work_on(&(x.alias)),
     };
 
     match result {
