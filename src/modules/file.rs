@@ -1,5 +1,6 @@
 use serde::Serialize;
 use std::env;
+use std::fmt::format;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -108,4 +109,19 @@ pub fn write_string_to_file(path: &String, contents: String) -> Result<(), Error
     })?;
 
     Ok(())
+}
+
+pub fn read_file(path: &String) -> Result<String, Error> {
+    if does_path_exists(path) {
+        let content = fs::read_to_string(path).map_err(|e| {
+            Error::new(format!("Failed to read `{path}`"))
+                .code(exitcode::NOINPUT)
+                .kind(ErrorKind::FileSystem)
+                .source(e)
+        })?;
+
+        Ok(content)
+    } else {
+        Err(Error::new(format!("`{path}` does not exists")).kind(ErrorKind::FileSystem))
+    }
 }
