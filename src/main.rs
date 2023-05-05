@@ -4,19 +4,26 @@ mod modules;
 mod structures;
 mod utils;
 
+use std::process;
+
 use clap::Parser;
-use commands::base::init;
+use commands::base::{init::init, work_on::work_on};
 use structures::args::{Command, YoArgs};
 use utils::print::{fprint, MessageType};
 
 fn main() {
     let args = YoArgs::parse();
 
-    match args.command {
-        Command::Init(x) => match init::init(&(x.alias)) {
-            Ok(_) => fprint("Initialized".to_string(), MessageType::Success),
-            Err(e) => fprint(e.to_string(), MessageType::Error),
-        },
-        Command::Workon(x) => println!("{}", x.alias),
+    let result = match args.command {
+        Command::Init(x) => init(&(x.alias)),
+        Command::Workon(x) => work_on(),
+    };
+
+    match result {
+        Ok(success) => fprint(success, MessageType::Success),
+        Err(e) => {
+            fprint(e.to_string(), MessageType::Error);
+            process::exit(e.code);
+        }
     }
 }

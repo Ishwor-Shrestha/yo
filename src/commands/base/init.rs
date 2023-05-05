@@ -1,7 +1,7 @@
 use crate::modules::project::*;
 use crate::structures::error::{Error, ErrorKind};
 
-pub fn init(project_alias: &String) -> Result<(), Error> {
+pub fn init(project_alias: &String) -> Result<String, Error> {
     create_yo_dir()?;
 
     // check if project is already initialized
@@ -10,7 +10,9 @@ pub fn init(project_alias: &String) -> Result<(), Error> {
         create_project_dir(project_alias)?;
 
         // Inside project directory create `config` file with base contents
-        create_project_config(project_alias)
+        create_project_config(project_alias)?;
+
+        Ok(String::from("Project initialized"))
     } else {
         return Err(Error::new(format!(
             "Project already initialized with alias `{project_alias}`"
