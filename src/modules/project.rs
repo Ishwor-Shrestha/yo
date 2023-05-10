@@ -2,7 +2,7 @@ use crate::modules::file::*;
 use crate::structures::{config::Config, error::Error, error::ErrorKind};
 use std::{env, fs, path::Path};
 
-type Callback = fn();
+type Callback<T> = fn() -> Result<T, Error>;
 
 pub fn get_config_path() -> Result<String, Error> {
     let project_alias = get_projec_alias()?;
@@ -54,10 +54,11 @@ pub fn get_projec_alias() -> Result<String, Error> {
 }
 
 // Execute code block only if project has been initialized
-pub fn safe_zone(callback: Callback) -> Result<(), Error> {
+pub fn if_project_initialized<T>(callback: Callback<T>) -> Result<T, Error> {
     if !is_project_initialized()? {
-        Ok(())
+        let result = callback()?;
+        Ok(result)
     } else {
-        return Err(Error::new("Project already initialized".to_string()).kind(ErrorKind::Project));
+        Err(Error::new("Project already initialized".to_string()).kind(ErrorKind::Project))
     }
 }

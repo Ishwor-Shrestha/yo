@@ -6,7 +6,7 @@ pub fn init() -> Result<String, Error> {
     create_yo_dir()?;
 
     // check if project is already initialized
-    if !is_project_initialized()? {
+    if_project_initialized(|| {
         // Create project directory with given alias
         create_project_dir()?;
 
@@ -14,9 +14,7 @@ pub fn init() -> Result<String, Error> {
         create_project_config()?;
 
         Ok(String::from("Project initialized"))
-    } else {
-        return Err(Error::new("Project already initialized".to_string()).kind(ErrorKind::Project));
-    }
+    })
 }
 
 // Creates `.yo` directory in user's home directory
