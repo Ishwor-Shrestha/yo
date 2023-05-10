@@ -29,3 +29,4 @@ thiserror = "1.0.40"
 # For user's home directory
 home = "0.5.5"
 
+xshell = "0.2.3"

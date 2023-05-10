@@ -15,7 +15,7 @@ fn main() {
     let args = YoArgs::parse();
 
     let result = match args.command {
-        Command::Init(x) => init(&(x.alias)),
+        Command::Init => init(),
         Command::Workon(x) => work_on(&(x.alias)),
     };
 

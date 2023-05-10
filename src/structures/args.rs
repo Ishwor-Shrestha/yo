@@ -9,7 +9,7 @@ pub struct YoArgs {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Initialize yo
-    Init(ProjectInfo),
+    Init,
     Workon(ProjectInfo),
 }
 

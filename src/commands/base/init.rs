@@ -2,23 +2,20 @@ use crate::modules::{file::*, project::*};
 use crate::structures::{config::Config, error::Error, error::ErrorKind};
 
 // Initialize project in directory where `yo init` is called
-pub fn init(project_alias: &String) -> Result<String, Error> {
+pub fn init() -> Result<String, Error> {
     create_yo_dir()?;
 
     // check if project is already initialized
-    if !is_project_initialized(project_alias)? {
+    if !is_project_initialized()? {
         // Create project directory with given alias
-        create_project_dir(project_alias)?;
+        create_project_dir()?;
 
         // Inside project directory create `config` file with base contents
-        create_project_config(project_alias)?;
+        create_project_config()?;
 
         Ok(String::from("Project initialized"))
     } else {
-        return Err(Error::new(format!(
-            "Project already initialized with alias `{project_alias}`"
-        ))
-        .kind(ErrorKind::Project));
+        return Err(Error::new("Project already initialized".to_string()).kind(ErrorKind::Project));
     }
 }
 
@@ -32,18 +29,20 @@ fn create_yo_dir() -> Result<(), Error> {
 }
 
 // Creates project directory with passed alias as name
-fn create_project_dir(alias: &String) -> Result<(), Error> {
+fn create_project_dir() -> Result<(), Error> {
+    let alias = get_projec_alias()?;
     let home_path = get_home_path()?;
-    let project_path = get_file_path(vec![&home_path, ".yo", alias])?;
+    let project_path = get_file_path(vec![&home_path, ".yo", &alias])?;
 
     create_dir(&project_path)
 }
 
 // Creates config file under project directory
-fn create_project_config(alias: &String) -> Result<(), Error> {
+fn create_project_config() -> Result<(), Error> {
+    let alias = get_projec_alias()?;
     let config = Config {
         root: get_current_path()?,
     };
 
-    write_to_file(&get_config_path(alias)?, &config)
+    write_to_file(&get_config_path()?, &config)
 }
