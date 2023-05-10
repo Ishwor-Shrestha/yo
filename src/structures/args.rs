@@ -10,11 +10,4 @@ pub struct YoArgs {
 pub enum Command {
     /// Initialize yo
     Init,
-    Workon(ProjectInfo),
-}
-
-#[derive(Debug, Args)]
-pub struct ProjectInfo {
-    /// Project alias
-    pub alias: String,
 }

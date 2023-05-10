@@ -7,7 +7,7 @@ mod utils;
 use std::process;
 
 use clap::Parser;
-use commands::base::{init::init, work_on::work_on};
+use commands::base::init::init;
 use structures::args::{Command, YoArgs};
 use utils::print::{fprint, MessageType};
 
@@ -16,7 +16,6 @@ fn main() {
 
     let result = match args.command {
         Command::Init => init(),
-        Command::Workon(x) => work_on(&(x.alias)),
     };
 
     match result {
