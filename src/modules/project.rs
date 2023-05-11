@@ -53,8 +53,6 @@ pub fn get_projec_alias() -> Result<String, Error> {
             .replace("/", "_")
             .replace("\\", "_");
 
-        println!("Directory alias : {}", directory_alias);
-
         if current_path_alias.contains(&directory_alias) {
             alias = directory_alias;
             break;

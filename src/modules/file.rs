@@ -78,10 +78,7 @@ pub fn create_dir(path: &String) -> Result<(), Error> {
 // Change current working directory
 pub fn change_directory(path: &String) {
     let resolved_path = Path::new(path);
-    println!("{}", resolved_path.display());
     env::set_current_dir(&resolved_path).unwrap();
-    let cd = env::current_dir().unwrap();
-    println!("{}", cd.display());
 }
 
 // ----- Read/write file -----
