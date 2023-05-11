@@ -37,10 +37,9 @@ fn create_project_dir() -> Result<(), Error> {
 
 // Creates config file under project directory
 fn create_project_config() -> Result<(), Error> {
-    let alias = get_projec_alias()?;
     let config = Config {
         root: get_current_path()?,
     };
 
-    write_to_file(&get_config_path()?, &config)
+    set_config(config)
 }

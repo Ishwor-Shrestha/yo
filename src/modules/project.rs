@@ -21,6 +21,12 @@ pub fn get_config() -> Result<Config, Error> {
     Ok(config)
 }
 
+pub fn set_config(config: Config) -> Result<(), Error> {
+    let alias = get_projec_alias()?;
+
+    write_to_file(&get_config_path()?, &config)
+}
+
 pub fn is_project_initialized() -> Result<bool, Error> {
     let project_alias = get_projec_alias()?;
     let home_path = get_home_path()?;
