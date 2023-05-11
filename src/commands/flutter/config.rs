@@ -26,7 +26,10 @@ fn update_package_path(path: &String) -> Result<String, Error> {
 
 fn update_script_path(path: &String) -> Result<String, Error> {
     let mut config = get_config()?;
-    config.script(path.to_string());
+    let current_path = get_current_path()?;
+    let script_path = clean_path(get_file_path(vec![&current_path, path])?)?;
+
+    config.script(script_path);
 
     set_config(config)?;
 
