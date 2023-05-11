@@ -10,4 +10,21 @@ pub struct YoArgs {
 pub enum Command {
     /// Initialize yo
     Init,
+    /// Set config
+    #[clap(subcommand)]
+    Config(ConfigCommand),
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ConfigCommand {
+    /// Set package path
+    Package(ConfigArgs),
+    /// Set script path
+    Script(ConfigArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct ConfigArgs {
+    /// Path
+    pub path: String,
 }
