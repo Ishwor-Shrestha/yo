@@ -8,7 +8,8 @@ use std::process;
 
 use clap::Parser;
 use commands::base::init::init;
-use structures::args::{Command, YoArgs};
+use commands::flutter::config::*;
+use structures::args::{Command, ConfigArgs, ConfigCommand, YoArgs};
 use utils::print::{fprint, MessageType};
 
 fn main() {
@@ -16,6 +17,7 @@ fn main() {
 
     let result = match args.command {
         Command::Init => init(),
+        Command::Config(x) => update_config(x),
     };
 
     match result {
