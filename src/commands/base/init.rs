@@ -37,9 +37,6 @@ fn create_project_dir() -> Result<(), Error> {
 
 // Creates config file under project directory
 fn create_project_config() -> Result<(), Error> {
-    let config = Config {
-        root: get_current_path()?,
-    };
-
+    let config = Config::new(get_current_path()?);
     set_config(config)
 }
