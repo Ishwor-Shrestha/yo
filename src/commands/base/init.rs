@@ -1,4 +1,5 @@
 use crate::modules::{file::*, project::*};
+use crate::resources::strings::*;
 use crate::structures::{config::Config, error::Error, error::ErrorKind};
 
 // Initialize project in directory where `yo init` is called
@@ -13,7 +14,7 @@ pub fn init() -> Result<String, Error> {
         // Inside project directory create `config` file with base contents
         create_project_config()?;
 
-        Ok(String::from("Project initialized"))
+        Ok(String::from(S_PROJECT_INITIALIZED))
     })
 }
 
@@ -38,5 +39,5 @@ fn create_project_dir() -> Result<(), Error> {
 // Creates config file under project directory
 fn create_project_config() -> Result<(), Error> {
     let config = Config::new(get_current_path()?);
-    set_config(config)
+    set_config_x(config)
 }
