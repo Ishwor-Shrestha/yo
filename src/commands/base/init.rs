@@ -7,15 +7,17 @@ pub fn init() -> Result<String, Error> {
     create_yo_dir()?;
 
     // check if project is already initialized
-    if_project_initialized(|| {
+    if is_project_initialized()? {
+        return Err(Error::new(S_PROJECT_ALREADY_INITIALIZED.to_string()).kind(ErrorKind::Project));
+    } else {
         // Create project directory with given alias
         create_project_dir()?;
 
         // Inside project directory create `config` file with base contents
         create_project_config()?;
 
-        Ok(String::from(S_PROJECT_INITIALIZED))
-    })
+        return Ok(String::from(S_PROJECT_INITIALIZED));
+    }
 }
 
 // Creates `.yo` directory in user's home directory
@@ -29,7 +31,7 @@ fn create_yo_dir() -> Result<(), Error> {
 
 // Creates project directory with passed alias as name
 fn create_project_dir() -> Result<(), Error> {
-    let alias = get_projec_alias()?;
+    let alias = create_project_alias()?;
     let home_path = get_home_path()?;
     let project_path = get_file_path(vec![&home_path, ".yo", &alias])?;
 
