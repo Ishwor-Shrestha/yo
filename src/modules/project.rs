@@ -1,8 +1,5 @@
 use crate::modules::{file::*, strings_helper::*};
-use crate::resources::strings::{
-    S_COULD_NOT_READ_YO_DIR, S_ERROR_DESERIALIZING_CONFIG, S_FAILED_TO_COMMAND,
-    S_PROJECT_ALREADY_INITIALIZED, S_PROJECT_NOT_INITIALIZESD,
-};
+use crate::resources::strings::*;
 use crate::resources::*;
 use crate::structures::{config::Config, error::Error, error::ErrorKind};
 use std::env::current_dir;
@@ -15,7 +12,20 @@ pub type Callback<T> = fn() -> Result<T, Error>;
 
 // Check if project has been initialized
 pub fn is_project_initialized() -> Result<bool, Error> {
-    let project_alias = get_projec_alias()?;
+    let project_alias_result = get_projec_alias();
+
+    let project_alias: String;
+    match project_alias_result {
+        Ok(x) => project_alias = x,
+        Err(e) => {
+            if e.message == S_PROJECT_NOT_INITIALIZED {
+                return Ok(false);
+            }
+
+            return Err(e);
+        }
+    }
+
     let home_path = get_home_path()?;
     let project_path = get_file_path(vec![&home_path, ".yo", &project_alias, "configx.yaml"])?;
 
@@ -24,11 +34,11 @@ pub fn is_project_initialized() -> Result<bool, Error> {
 
 // Execute code block only if project has been initialized
 pub fn if_project_initialized<T>(callback: Callback<T>) -> Result<T, Error> {
-    if !is_project_initialized()? {
+    if is_project_initialized()? {
         let result = callback()?;
         Ok(result)
     } else {
-        Err(Error::new(S_PROJECT_ALREADY_INITIALIZED.to_string()).kind(ErrorKind::Project))
+        Err(Error::new(S_PROJECT_NOT_INITIALIZED.to_string()).kind(ErrorKind::Project))
     }
 }
 
@@ -66,7 +76,7 @@ pub fn get_projec_alias() -> Result<String, Error> {
     }
 
     if alias.is_empty() {
-        return Err(Error::new(S_PROJECT_NOT_INITIALIZESD.to_string()).kind(ErrorKind::FileSystem));
+        return Err(Error::new(S_PROJECT_NOT_INITIALIZED.to_string()).kind(ErrorKind::Project));
     }
 
     Ok(alias)
