@@ -1,6 +1,6 @@
 use crate::modules::{file::*, project::*};
 use crate::resources::strings::*;
-use crate::structures::{config::Config, error::Error, error::ErrorKind};
+use crate::structures::{error::Error, error::ErrorKind, yo_config::YoConfig};
 
 // Initialize project in directory where `yo init` is called
 pub fn init() -> Result<String, Error> {
@@ -40,6 +40,6 @@ fn create_project_dir() -> Result<(), Error> {
 
 // Creates config file under project directory
 fn create_project_config() -> Result<(), Error> {
-    let config = Config::new(get_current_path()?);
+    let config = YoConfig::new(get_current_path()?);
     set_config_x(config)
 }

@@ -1,7 +1,7 @@
 use crate::modules::{file::*, strings_helper::*};
 use crate::resources::strings::*;
 use crate::resources::*;
-use crate::structures::{config::Config, error::Error, error::ErrorKind};
+use crate::structures::{error::Error, error::ErrorKind, yo_config::YoConfig};
 use std::env::current_dir;
 use std::process::Command;
 use std::{env, fs, path::Path};
@@ -53,7 +53,7 @@ pub fn get_projec_alias() -> Result<String, Error> {
             .source(e)
     })?;
 
-    let current_path_alias = get_current_path()?.replace("/", "_").replace("\\", "_");
+    let current_path_alias = create_project_alias()?;
     let mut alias = String::new();
 
     for directory in directories {
@@ -82,6 +82,14 @@ pub fn get_projec_alias() -> Result<String, Error> {
     Ok(alias)
 }
 
+// Create project alias
+pub fn create_project_alias() -> Result<String, Error> {
+    Ok(get_current_path()?
+        .replace("/", "_")
+        .replace("\\", "_")
+        .to_string())
+}
+
 // ----- Operate on config -----
 
 // Get path of config for current project
@@ -94,34 +102,34 @@ pub fn get_config_path() -> Result<String, Error> {
 }
 
 // Get config content
-pub fn get_config() -> Result<Config, Error> {
+pub fn get_config() -> Result<YoConfig, Error> {
     let alias = get_projec_alias()?;
     let content = read_file(&get_config_path()?)?;
-    let config: Config = serde_json::from_str(&content)
+    let config: YoConfig = serde_json::from_str(&content)
         .map_err(|e| Error::new(S_ERROR_DESERIALIZING_CONFIG.to_string()))?;
 
     Ok(config)
 }
 
 // Set/update config content
-pub fn set_config(config: Config) -> Result<(), Error> {
+pub fn set_config(config: YoConfig) -> Result<(), Error> {
     let alias = get_projec_alias()?;
 
     write_to_file(&get_config_path()?, &config)
 }
 
 // Get config content
-pub fn get_config_x() -> Result<Config, Error> {
+pub fn get_config_x() -> Result<YoConfig, Error> {
     let alias = get_projec_alias()?;
     let content = read_file(&get_config_path()?)?;
-    let config: Config = serde_yaml::from_str(&content)
+    let config: YoConfig = serde_yaml::from_str(&content)
         .map_err(|e| Error::new(S_ERROR_DESERIALIZING_CONFIG.to_string()))?;
 
     Ok(config)
 }
 
 // Set/update config content
-pub fn set_config_x(config: Config) -> Result<(), Error> {
+pub fn set_config_x(config: YoConfig) -> Result<(), Error> {
     let alias = get_projec_alias()?;
 
     write_to_file_yaml(&get_config_path()?, &config)
