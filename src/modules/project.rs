@@ -12,7 +12,7 @@ pub type Callback<T> = fn() -> Result<T, Error>;
 
 // Check if project has been initialized
 pub fn is_project_initialized() -> Result<bool, Error> {
-    let project_alias_result = get_projec_alias();
+    let project_alias_result = get_project_alias();
 
     let project_alias: String;
     match project_alias_result {
@@ -43,7 +43,7 @@ pub fn if_project_initialized<T>(callback: Callback<T>) -> Result<T, Error> {
 }
 
 // Get project alias
-pub fn get_projec_alias() -> Result<String, Error> {
+pub fn get_project_alias() -> Result<String, Error> {
     let home_path = get_home_path()?;
     let yo_path = get_file_path(vec![&home_path, ".yo"])?;
 
@@ -94,7 +94,7 @@ pub fn create_project_alias() -> Result<String, Error> {
 
 // Get path of config for current project
 pub fn get_config_path() -> Result<String, Error> {
-    let project_alias = get_projec_alias()?;
+    let project_alias = get_project_alias()?;
     let home_path = get_home_path()?;
     let config_path = get_file_path(vec![&home_path, ".yo", &project_alias, "configx.yaml"])?;
 
@@ -103,7 +103,7 @@ pub fn get_config_path() -> Result<String, Error> {
 
 // Get config content
 pub fn get_config() -> Result<YoConfig, Error> {
-    let alias = get_projec_alias()?;
+    let alias = get_project_alias()?;
     let content = read_file(&get_config_path()?)?;
     let config: YoConfig = serde_json::from_str(&content)
         .map_err(|e| Error::new(S_ERROR_DESERIALIZING_CONFIG.to_string()))?;
@@ -113,14 +113,14 @@ pub fn get_config() -> Result<YoConfig, Error> {
 
 // Set/update config content
 pub fn set_config(config: YoConfig) -> Result<(), Error> {
-    let alias = get_projec_alias()?;
+    let alias = get_project_alias()?;
 
     write_to_file(&get_config_path()?, &config)
 }
 
 // Get config content
 pub fn get_config_x() -> Result<YoConfig, Error> {
-    let alias = get_projec_alias()?;
+    let alias = get_project_alias()?;
     let content = read_file(&get_config_path()?)?;
     let config: YoConfig = serde_yaml::from_str(&content)
         .map_err(|e| Error::new(S_ERROR_DESERIALIZING_CONFIG.to_string()))?;
@@ -130,7 +130,7 @@ pub fn get_config_x() -> Result<YoConfig, Error> {
 
 // Set/update config content
 pub fn set_config_x(config: YoConfig) -> Result<(), Error> {
-    let alias = get_projec_alias()?;
+    let alias = get_project_alias()?;
 
     write_to_file_yaml(&get_config_path()?, &config)
 }
