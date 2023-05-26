@@ -10,9 +10,14 @@ pub struct YoArgs {
 pub enum Command {
     /// Initialize yo
     Init,
+
+    // ----- Flutter commands -----
     /// Set config
     #[clap(subcommand)]
     Config(ConfigCommand),
+
+    /// Get flutter dependecies
+    Get,
 }
 
 #[derive(Debug, Subcommand)]

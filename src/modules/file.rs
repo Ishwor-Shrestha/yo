@@ -99,9 +99,23 @@ pub fn read_file(path: &String) -> Result<String, Error> {
     }
 }
 
-// Serialize and write to file
+// Serialize into json and write to file
 pub fn write_to_file<T: Serialize>(path: &String, t: &T) -> Result<(), Error> {
     let contents = serde_json::to_string(t).map_err(|e| {
+        Error::new(format!(
+            "Failed to serialize file in path `{path}` to write to file"
+        ))
+        .code(exitcode::IOERR)
+        .kind(ErrorKind::FileSystem)
+        .source(e)
+    })?;
+
+    write_string_to_file(path, contents)
+}
+
+// Serialize into yaml and write to file
+pub fn write_to_file_yaml<T: Serialize>(path: &String, t: &T) -> Result<(), Error> {
+    let contents = serde_yaml::to_string(t).map_err(|e| {
         Error::new(format!(
             "Failed to serialize file in path `{path}` to write to file"
         ))
