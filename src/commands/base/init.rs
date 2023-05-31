@@ -1,5 +1,6 @@
 use crate::modules::{file::*, project::*};
 use crate::resources::strings::*;
+use crate::structures::yo_config::YoFlutterConfig;
 use crate::structures::{error::Error, error::ErrorKind, yo_config::YoConfig};
 
 // Initialize project in directory where `yo init` is called
@@ -40,6 +41,11 @@ fn create_project_dir() -> Result<(), Error> {
 
 // Creates config file under project directory
 fn create_project_config() -> Result<(), Error> {
-    let config = YoConfig::new(get_current_path()?);
-    set_config_x(config)
+    let current_path = get_current_path()?;
+    let flutter_config = YoFlutterConfig {
+        project_type: String::from("default"),
+        package_dir: current_path.clone(),
+    };
+    let config = YoConfig::new(current_path, flutter_config);
+    set_config(config)
 }

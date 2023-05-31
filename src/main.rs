@@ -9,8 +9,8 @@ use std::process;
 
 use clap::Parser;
 use commands::base::init::init;
-use commands::flutter::{config::update_config, get::get};
-use structures::args::{Command, ConfigArgs, ConfigCommand, YoArgs};
+use commands::flutter::{config::open_config, get::get};
+use structures::args::{Command, YoArgs};
 use utils::print::{fprint, MessageType};
 
 fn main() {
@@ -18,7 +18,7 @@ fn main() {
 
     let result = match args.command {
         Command::Init => init(),
-        Command::Config(x) => update_config(x),
+        Command::Config => open_config(),
         Command::Get => get(),
     };
 

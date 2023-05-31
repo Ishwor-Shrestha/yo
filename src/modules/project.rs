@@ -105,23 +105,6 @@ pub fn get_config_path() -> Result<String, Error> {
 pub fn get_config() -> Result<YoConfig, Error> {
     let alias = get_project_alias()?;
     let content = read_file(&get_config_path()?)?;
-    let config: YoConfig = serde_json::from_str(&content)
-        .map_err(|e| Error::new(S_ERROR_DESERIALIZING_CONFIG.to_string()))?;
-
-    Ok(config)
-}
-
-// Set/update config content
-pub fn set_config(config: YoConfig) -> Result<(), Error> {
-    let alias = get_project_alias()?;
-
-    write_to_file(&get_config_path()?, &config)
-}
-
-// Get config content
-pub fn get_config_x() -> Result<YoConfig, Error> {
-    let alias = get_project_alias()?;
-    let content = read_file(&get_config_path()?)?;
     let config: YoConfig = serde_yaml::from_str(&content)
         .map_err(|e| Error::new(S_ERROR_DESERIALIZING_CONFIG.to_string()))?;
 
@@ -129,7 +112,7 @@ pub fn get_config_x() -> Result<YoConfig, Error> {
 }
 
 // Set/update config content
-pub fn set_config_x(config: YoConfig) -> Result<(), Error> {
+pub fn set_config(config: YoConfig) -> Result<(), Error> {
     let alias = get_project_alias()?;
 
     write_to_file_yaml(&get_config_path()?, &config)
