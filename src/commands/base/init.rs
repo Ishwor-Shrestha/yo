@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::modules::{file::*, project::*};
 use crate::resources::strings::*;
 use crate::structures::yo_config::YoFlutterConfig;
@@ -43,8 +45,8 @@ fn create_project_dir() -> Result<(), Error> {
 fn create_project_config() -> Result<(), Error> {
     let current_path = get_current_path()?;
     let flutter_config = YoFlutterConfig {
-        project_type: String::from("default"),
         package_dir: current_path.clone(),
+        pubspec_dirs: Vec::new(),
     };
     let config = YoConfig::new(current_path, flutter_config);
     set_config(config)

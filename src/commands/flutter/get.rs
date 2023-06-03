@@ -5,7 +5,7 @@ use crate::structures::error::{Error, ErrorKind};
 
 pub fn get() -> Result<String, Error> {
     if_project_initialized(|| {
-        execute_flutter_command(&"flutter_pub_get".to_string(), false, 0);
+        run_flutter_command("flutter_pub_get".to_string(), "".to_string());
 
         Ok("Fetched dependecies".to_string())
     })
