@@ -7,3 +7,4 @@ pub const S_FAILED_TO_COMMAND: &str = "Failed to run command";
 pub const S_FAILED_TO_OPEN_CONFIG: &str = "Failed to open config";
 pub const S_FAILED_TO_SCAN_PUBSPEC_DIRECTORIES: &str = "Failed to scan pubspec directories";
 pub const S_MAKE_SURE_SCAN_THE_PROJECT_FIRST: &str = "Make sure scan the project first";
+pub const S_SCANNED_PROJECT_DIRECTORY: &str = "Scanned project directory";

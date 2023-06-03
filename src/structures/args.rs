@@ -15,6 +15,9 @@ pub enum Command {
     /// Open config
     Config,
 
+    /// Scan flutter project directory
+    Scan,
+
     /// Get flutter dependecies
     Get,
 }
