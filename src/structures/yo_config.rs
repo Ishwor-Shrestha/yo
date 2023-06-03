@@ -1,29 +1,32 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct YoConfig {
     // Root of the project
     pub root: String,
 
     // ----- For flutter projects -----
     pub flutter_config: YoFlutterConfig,
-
-    // Package directory
-    pub package: String,
-
-    // Script directory
-    pub script: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct YoFlutterConfig {
-    // Project type
-    // 1. default
-    // 2. monorepo
-    pub project_type: String,
-
     // Package directory
     pub package_dir: String,
+
+    // All directories which contains the pubspec.yaml file
+    pub pubspec_dirs: Vec<YoFlutterPubspecDirectory>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct YoFlutterPubspecDirectory {
+    // ID
+    pub key: String,
+
+    // Path to directory
+    pub path: String,
 }
 
 impl YoConfig {
@@ -31,18 +34,34 @@ impl YoConfig {
         YoConfig {
             root,
             flutter_config,
-            package: String::new(),
-            script: String::new(),
         }
     }
 
-    pub fn package(&mut self, package: String) -> &YoConfig {
-        self.package = package;
+    pub fn flutter_config(mut self, flutter_config: YoFlutterConfig) -> YoConfig {
+        self.flutter_config = flutter_config;
         self
     }
+}
 
-    pub fn script(&mut self, script: String) -> &YoConfig {
-        self.script = script;
+impl YoFlutterConfig {
+    pub fn new(
+        package_dir: String,
+        pubspec_dirs: Vec<YoFlutterPubspecDirectory>,
+    ) -> YoFlutterConfig {
+        YoFlutterConfig {
+            package_dir,
+            pubspec_dirs,
+        }
+    }
+
+    pub fn pubspec_dirs(mut self, pubspec_dirs: Vec<YoFlutterPubspecDirectory>) -> YoFlutterConfig {
+        self.pubspec_dirs = pubspec_dirs;
         self
+    }
+}
+
+impl YoFlutterPubspecDirectory {
+    pub fn new(key: String, path: String) -> YoFlutterPubspecDirectory {
+        YoFlutterPubspecDirectory { key, path }
     }
 }
