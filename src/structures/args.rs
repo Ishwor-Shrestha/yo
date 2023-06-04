@@ -19,5 +19,12 @@ pub enum Command {
     Scan,
 
     /// Get flutter dependecies
-    Get,
+    Get(GetArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct GetArgs {
+    /// Key corresponding pubspec directory
+    #[clap(default_value = "")]
+    pub key: String,
 }

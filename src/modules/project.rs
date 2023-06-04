@@ -6,7 +6,7 @@ use std::env::current_dir;
 use std::process::Command;
 use std::{env, fs, path::Path};
 
-pub type Callback<T> = fn() -> Result<T, Error>;
+pub type Callback<'a, T> = &'a dyn Fn() -> Result<T, Error>;
 
 // ----- Project status -----
 
@@ -63,7 +63,12 @@ pub fn get_project_alias() -> Result<String, Error> {
                 .source(e)
         })?;
 
-        let directory_alias = directory.path().display().to_string().replace(&yo_path, "");
+        let directory_alias = directory
+            .path()
+            .display()
+            .to_string()
+            .replace(&yo_path, "")
+            .to_lowercase();
 
         let directory_alias = crop_letters(&directory_alias, 1)
             .replace("/", "_")
@@ -87,7 +92,8 @@ pub fn create_project_alias() -> Result<String, Error> {
     Ok(get_current_path()?
         .replace("/", "_")
         .replace("\\", "_")
-        .to_string())
+        .to_string()
+        .to_lowercase())
 }
 
 // ----- Operate on config -----

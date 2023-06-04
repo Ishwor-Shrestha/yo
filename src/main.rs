@@ -20,7 +20,7 @@ fn main() {
         Command::Init => init(),
         Command::Config => open_config(),
         Command::Scan => scan(),
-        Command::Get => get(),
+        Command::Get(arg) => get(&arg.key),
     };
 
     match result {

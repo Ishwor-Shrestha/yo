@@ -11,13 +11,37 @@ use crate::resources::strings::*;
 use crate::structures::yo_config::{YoConfig, YoFlutterConfig, YoFlutterPubspecDirectory};
 use crate::structures::{error::Error, error::ErrorKind};
 
-pub fn run_flutter_command(commmand: String, key: String) -> Result<(), Error> {
+pub fn run_flutter_command(command: String, key: &String) -> Result<(), Error> {
     let config = get_config()?;
     let flutter_config = config.flutter_config;
 
-    if flutter_config.pubspec_dirs.is_empty() {
+    let pub_dirs = flutter_config.pubspec_dirs;
+    if pub_dirs.is_empty() {
         return Err(Error::new(S_MAKE_SURE_SCAN_THE_PROJECT_FIRST.to_string()));
     }
+
+    if key.is_empty() {
+        for dir in pub_dirs {
+            change_directory(&dir.path);
+            let result = run_command(&command);
+            if result.is_err() {
+                return result;
+            }
+        }
+    } else {
+        let pub_directory = pub_dirs.into_iter().find(|x| x.key == *key);
+        match pub_directory {
+            Some(dir) => {
+                change_directory(&dir.path);
+                return run_command(&command);
+            }
+            None => {
+                let error = Error::new(format!("`{}` does not exists. Make sure you've run scanned the project directory first", key)).kind(ErrorKind::Project);
+                return Err(error);
+            }
+        }
+    }
+
     Ok(())
 }
 
