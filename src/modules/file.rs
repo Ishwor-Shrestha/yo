@@ -59,7 +59,7 @@ pub fn does_path_exists(path: &String) -> bool {
 
 // Clean up user passed path
 pub fn clean_path(path: String) -> Result<String, Error> {
-    change_directory(&path);
+    change_directory(&path)?;
     get_current_path()
 }
 

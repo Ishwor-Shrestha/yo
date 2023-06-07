@@ -1,4 +1,4 @@
-use crate::commands::flutter::flutter_project::*;
+use crate::commands::flutter::helper::flutter_project::*;
 use crate::commands::flutter::*;
 use crate::modules::project::{get_project_alias, if_project_initialized, run_command};
 use crate::resources::strings::*;
