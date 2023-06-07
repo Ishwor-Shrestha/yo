@@ -31,3 +31,9 @@ thiserror = "1.0.40"
 home = "0.5.5"
 
 xshell = "0.2.3"
+
+[profile.release]
+strip = true  # Automatically strip symbols from the binary.
+opt-level = "z"  # Optimize for size.
+lto = true
+codegen-units = 1
