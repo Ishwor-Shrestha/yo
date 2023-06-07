@@ -9,8 +9,9 @@ use std::process;
 
 use clap::Parser;
 use commands::base::init::init;
-use commands::flutter::build::build;
-use commands::flutter::{config::open_config, get::get, scan::scan};
+use commands::flutter::{
+    build::build, clean::clean, config::open_config, get::get, scan::scan, test::test,
+};
 use structures::args::{Command, YoArgs};
 use utils::print::{fprint, MessageType};
 
@@ -23,7 +24,8 @@ fn main() {
         Command::Scan => scan(),
         Command::Get(arg) => get(&arg.key),
         Command::Build(arg) => build(&arg.key),
-        Command::Test(arg) => build(&arg.key),
+        Command::Test(arg) => test(&arg.key),
+        Command::Clean(arg) => clean(&arg.key),
     };
 
     match result {

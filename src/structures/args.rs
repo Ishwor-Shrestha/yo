@@ -26,6 +26,9 @@ pub enum Command {
 
     /// Run flutter tests
     Test(FlutterArgs),
+
+    /// Clean flutter project
+    Clean(FlutterArgs),
 }
 
 #[derive(Debug, Args)]
