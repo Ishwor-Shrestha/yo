@@ -6,11 +6,7 @@ use crate::structures::error::{Error, ErrorKind};
 
 pub fn get(key: &String) -> Result<String, Error> {
     if_project_initialized(&|| {
-        let result = run_flutter_command("flutter pub get".to_string(), key, &|output| {
-            println!("{}", output);
-
-            Ok(())
-        })?;
+        let result = run_flutter_command("flutter pub get".to_string(), key)?;
 
         if !result {
             return Err(

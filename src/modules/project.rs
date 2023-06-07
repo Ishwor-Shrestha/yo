@@ -8,8 +8,6 @@ use std::{env, fs, path::Path};
 
 pub type Callback<'a, T> = &'a dyn Fn() -> Result<T, Error>;
 
-pub type ValueCallback<'a, T, V> = &'a dyn Fn(V) -> Result<T, Error>;
-
 // ----- Project status -----
 
 // Check if project has been initialized

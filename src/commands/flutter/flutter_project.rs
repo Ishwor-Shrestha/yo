@@ -11,11 +11,7 @@ use crate::resources::strings::*;
 use crate::structures::yo_config::{YoConfig, YoFlutterConfig, YoFlutterPubspecDirectory};
 use crate::structures::{error::Error, error::ErrorKind};
 
-pub fn run_flutter_command(
-    command: String,
-    key: &String,
-    callback: ValueCallback<(), String>,
-) -> Result<bool, Error> {
+pub fn run_flutter_command(command: String, key: &String) -> Result<bool, Error> {
     let config = get_config()?;
     let flutter_config = config.flutter_config;
 
@@ -26,11 +22,9 @@ pub fn run_flutter_command(
 
     if key.is_empty() {
         for dir in pub_dirs {
-            change_directory(&dir.path)?;
-            let (status, output) = run_command(&command)?;
-            callback(output)?;
+            let run_command_status = run_command_for_path(&dir.path, &command)?;
 
-            if !status {
+            if !run_command_status {
                 return Ok(false);
             }
         }
@@ -38,13 +32,7 @@ pub fn run_flutter_command(
         let pub_directory = pub_dirs.into_iter().find(|x| x.key == *key);
         match pub_directory {
             Some(dir) => {
-                change_directory(&dir.path)?;
-                let (status, output) = run_command(&command)?;
-                callback(output)?;
-
-                if !status {
-                    return Ok(false);
-                }
+                return run_command_for_path(&dir.path, &command);
             }
             None => {
                 let error = Error::new(format!("`{}` does not exists. Make sure you've run scanned the project directory first", key)).kind(ErrorKind::Project);
@@ -54,6 +42,14 @@ pub fn run_flutter_command(
     }
 
     Ok(true)
+}
+
+fn run_command_for_path(path: &String, command: &String) -> Result<bool, Error> {
+    change_directory(path)?;
+    let (status, output) = run_command(command)?;
+    print!("{}", output);
+
+    return Ok(status);
 }
 
 pub fn scan_flutter_project() -> Result<(), Error> {
