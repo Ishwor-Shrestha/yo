@@ -23,6 +23,9 @@ pub enum Command {
 
     /// Run build runner for flutter projects
     Build(FlutterArgs),
+
+    /// Run flutter tests
+    Test(FlutterArgs),
 }
 
 #[derive(Debug, Args)]

@@ -23,6 +23,7 @@ fn main() {
         Command::Scan => scan(),
         Command::Get(arg) => get(&arg.key),
         Command::Build(arg) => build(&arg.key),
+        Command::Test(arg) => build(&arg.key),
     };
 
     match result {

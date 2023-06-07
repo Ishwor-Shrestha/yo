@@ -12,3 +12,5 @@ pub const S_FETCHED_FLUTTER_DEPENDENCIES: &str = "Fetch flutter dependencies";
 pub const S_FAILED_TO_FETCH_FLUTTER_DEPENDENCIES: &str = "Failed to fetch flutter dependencies";
 pub const S_BUILT_FLUTTER_PROJECT: &str = "Build flutter project";
 pub const S_FAILED_TO_BUILD_FLUTTER_PROJECT: &str = "Failed to build flutter project";
+pub const S_COMPLETED_FLUTTER_TESTS: &str = "Completed flutter tests";
+pub const S_FAILED_TO_RUN_FLUTTER_TESTS: &str = "Failed to run flutter tests";
