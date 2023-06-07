@@ -76,9 +76,13 @@ pub fn create_dir(path: &String) -> Result<(), Error> {
 }
 
 // Change current working directory
-pub fn change_directory(path: &String) {
+pub fn change_directory(path: &String) -> Result<(), Error> {
     let resolved_path = Path::new(path);
-    env::set_current_dir(&resolved_path).unwrap();
+    env::set_current_dir(&resolved_path).map_err(|e| {
+        Error::new(format!("Failed to open directory `{}`", path))
+            .kind(ErrorKind::Project)
+            .source(e)
+    })
 }
 
 // ----- Read/write file -----

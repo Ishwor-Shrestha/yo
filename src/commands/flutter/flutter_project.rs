@@ -11,7 +11,11 @@ use crate::resources::strings::*;
 use crate::structures::yo_config::{YoConfig, YoFlutterConfig, YoFlutterPubspecDirectory};
 use crate::structures::{error::Error, error::ErrorKind};
 
-pub fn run_flutter_command(command: String, key: &String) -> Result<(), Error> {
+pub fn run_flutter_command(
+    command: String,
+    key: &String,
+    callback: ValueCallback<(), String>,
+) -> Result<bool, Error> {
     let config = get_config()?;
     let flutter_config = config.flutter_config;
 
@@ -22,18 +26,25 @@ pub fn run_flutter_command(command: String, key: &String) -> Result<(), Error> {
 
     if key.is_empty() {
         for dir in pub_dirs {
-            change_directory(&dir.path);
-            let result = run_command(&command);
-            if result.is_err() {
-                return result;
+            change_directory(&dir.path)?;
+            let (status, output) = run_command(&command)?;
+            callback(output)?;
+
+            if !status {
+                return Ok(false);
             }
         }
     } else {
         let pub_directory = pub_dirs.into_iter().find(|x| x.key == *key);
         match pub_directory {
             Some(dir) => {
-                change_directory(&dir.path);
-                return run_command(&command);
+                change_directory(&dir.path)?;
+                let (status, output) = run_command(&command)?;
+                callback(output)?;
+
+                if !status {
+                    return Ok(false);
+                }
             }
             None => {
                 let error = Error::new(format!("`{}` does not exists. Make sure you've run scanned the project directory first", key)).kind(ErrorKind::Project);
@@ -42,7 +53,7 @@ pub fn run_flutter_command(command: String, key: &String) -> Result<(), Error> {
         }
     }
 
-    Ok(())
+    Ok(true)
 }
 
 pub fn scan_flutter_project() -> Result<(), Error> {
@@ -56,7 +67,10 @@ pub fn scan_flutter_project() -> Result<(), Error> {
 
     collect_valid_pubspec_dir(root_path, &|file| {
         let value = file.display().to_string();
-        let key = value.replace(&path, "");
+        let key = value
+            .replace(&path, "")
+            .replacen("/", "", 1)
+            .replacen("\\", "", 1);
 
         pubspec_paths
             .lock()

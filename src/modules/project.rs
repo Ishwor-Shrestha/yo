@@ -8,6 +8,8 @@ use std::{env, fs, path::Path};
 
 pub type Callback<'a, T> = &'a dyn Fn() -> Result<T, Error>;
 
+pub type ValueCallback<'a, T, V> = &'a dyn Fn(V) -> Result<T, Error>;
+
 // ----- Project status -----
 
 // Check if project has been initialized
@@ -124,36 +126,61 @@ pub fn set_config(config: YoConfig) -> Result<(), Error> {
     write_to_file_yaml(&get_config_path()?, &config)
 }
 
-pub fn run_command(command: &String) -> Result<(), Error> {
-    let is_windows = env::consts::OS == "windows";
-    let mut raw_commands: Vec<String> = vec![command.split(" ").collect()];
-    let mut base_raw_command = String::new();
+pub fn run_command(command: &String) -> Result<(bool, String), Error> {
+    let command_splits = command.split_whitespace().map(str::to_string).collect();
 
-    if is_windows {
-        base_raw_command = String::from("cmd");
-        let mut raw_commands = vec!["/C".to_string()].append(&mut raw_commands);
+    let output = run_command_x(command_splits).map_err(|e| {
+        Error::new(S_FAILED_TO_COMMAND.to_string())
+            .kind(ErrorKind::Project)
+            .source(e)
+    })?;
+
+    let output_read_error = "Failed to read command output";
+    let output_status = output.stderr.is_empty();
+
+    let output = if output_status {
+        String::from_utf8(output.stdout).expect(&output_read_error)
     } else {
-        base_raw_command = raw_commands
-            .first()
-            .ok_or(Error::new(S_FAILED_TO_COMMAND.to_string()).kind(ErrorKind::Project))?
-            .to_string();
+        format!(
+            "{}\n{}",
+            String::from_utf8(output.stdout).expect(&output_read_error),
+            String::from_utf8(output.stderr).expect(&output_read_error)
+        )
+    };
 
-        raw_commands.remove(0);
-    }
-
-    let mut command = &mut Command::new(base_raw_command);
-
-    for raw_command in raw_commands {
-        command = command.arg(&raw_command);
-    }
-
-    command
-        .output()
-        .map_err(|e| Error::new(S_FAILED_TO_COMMAND.to_string()).kind(ErrorKind::Project))?;
-
-    Ok(())
+    Ok((output_status, output))
 }
 
-fn add_command_args<'a>(m_command: &'a mut Command, arg: &'a String) -> &'a mut Command {
-    m_command.arg(arg)
+#[cfg(target_os = "windows")]
+fn run_command_x(command_splits: Vec<String>) -> Result<std::process::Output, std::io::Error> {
+    let mut command = std::process::Command::new("cmd").arg("/C");
+
+    for split in command_splits {
+        command = command.arg(split);
+    }
+
+    Ok(command.output()?)
+}
+
+#[cfg(not(target_os = "windows"))]
+fn run_command_x(mut command_splits: Vec<String>) -> Result<std::process::Output, std::io::Error> {
+    let mut command =
+        std::process::Command::new(command_splits.first().expect("Command list is empty"));
+
+    command_splits.remove(0);
+
+    let output: std::process::Output;
+    if command_splits.is_empty() {
+        return Ok(command.output()?);
+    }
+
+    let mut command = command.arg(command_splits.first().expect("Command list is empty"));
+
+    command_splits.remove(0);
+
+    for split in command_splits {
+        command = command.arg(split);
+    }
+
+    Ok(command.output()?)
 }
