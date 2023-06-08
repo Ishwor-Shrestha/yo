@@ -2,6 +2,21 @@
 
 ![image](https://github.com/Ishwor-Shrestha/yo/assets/6024310/738a7a7f-1047-4a04-bf9a-29f2112a4d06)
 
+    Usage: yo <COMMAND>
+
+    Commands:
+      init    Initialize yo
+      config  Open config
+      scan    Scan flutter project directory
+      get     Get flutter dependecies
+      build   Run build runner for flutter projects
+      test    Run flutter tests
+      clean   Clean flutter project
+      help    Print this message or the help of the given subcommand(s)
+
+    Options:
+      -h, --help  Print help
+
 ### Installation
 
 #### 1. Download the binary
