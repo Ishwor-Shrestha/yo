@@ -19,13 +19,6 @@
 
 #### 1. Download the binary
 
-```shell script
-curl -o <path_to_dir>/yo https://raw.githubusercontent.com/Ishwor-Shrestha/yo/master/binaries/<platform>/yo
-```
-
-Make sure you replace `<path_to_dir>` with your directory and `<platform>` with your respective platform in the binaries
-directory.
-
 #### 2. Add the binary to your path
 
 ### Usage
