@@ -1,5 +1,7 @@
 # YO : Make flutter development easier
 
+![image](https://github.com/Ishwor-Shrestha/yo/assets/6024310/738a7a7f-1047-4a04-bf9a-29f2112a4d06)
+
 ### Installation
 
 #### 1. Download the binary
