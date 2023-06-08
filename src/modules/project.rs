@@ -151,13 +151,14 @@ pub fn run_command(command: &String) -> Result<(bool, String), Error> {
 
 #[cfg(target_os = "windows")]
 fn run_command_x(command_splits: Vec<String>) -> Result<std::process::Output, std::io::Error> {
-    let mut command = std::process::Command::new("cmd").arg("/C");
+    let mut command = std::process::Command::new("cmd");
+    let mut command_with_args = command.arg("/C");
 
     for split in command_splits {
-        command = command.arg(split);
+        command_with_args = command_with_args.arg(split);
     }
 
-    Ok(command.output()?)
+    Ok(command_with_args.output()?)
 }
 
 #[cfg(not(target_os = "windows"))]
