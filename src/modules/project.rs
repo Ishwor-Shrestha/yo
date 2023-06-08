@@ -27,7 +27,7 @@ pub fn is_project_initialized() -> Result<bool, Error> {
     }
 
     let home_path = get_home_path()?;
-    let project_path = get_file_path(vec![&home_path, ".yo", &project_alias, "configx.yaml"])?;
+    let project_path = get_file_path(vec![&home_path, ".yo", &project_alias, "config.yaml"])?;
 
     Ok(does_path_exists(&project_path))
 }
@@ -102,7 +102,7 @@ pub fn create_project_alias() -> Result<String, Error> {
 pub fn get_config_path() -> Result<String, Error> {
     let project_alias = get_project_alias()?;
     let home_path = get_home_path()?;
-    let config_path = get_file_path(vec![&home_path, ".yo", &project_alias, "configx.yaml"])?;
+    let config_path = get_file_path(vec![&home_path, ".yo", &project_alias, "config.yaml"])?;
 
     Ok(config_path)
 }
