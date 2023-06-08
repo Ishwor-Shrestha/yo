@@ -44,7 +44,7 @@ yo init
 yo config
 ```
 
-Check the config [guide](https://github.com/Ishwor-Shrestha/yo/config.md) for more information.
+Check the config [guide](https://github.com/Ishwor-Shrestha/yo/blob/master/config.md) for more information.
 
 #### Run the `scan` command to scan your flutter project
 
