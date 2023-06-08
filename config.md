@@ -15,3 +15,9 @@
 | `package_dir` | Path to the package directory; during initialization defaults to `root`. (Make sure to edit this if
 your package path is different) |
 |x              |x              |
+
+| `root`        | Root of the project; where the `init` command was triggered                                                                         |   |   |   |
+|---------------|-------------------------------------------------------------------------------------------------------------------------------------|---|---|---|
+| `package_dir` | Path to the package directory; during initialization defaults to `root`. (Make sure to edit this if your package path is different) |   |   |   |
+|               |                                                                                                                                     |   |   |   |
+|               |                                                                                                                                     |   |   |   |
